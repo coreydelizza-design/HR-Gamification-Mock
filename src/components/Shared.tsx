@@ -1,15 +1,32 @@
-import type { Person, StyleKey, Tier } from '../lib/types';
-import { STYLES } from '../data/styles';
+import type { Person, Team, ReadinessLevel, ReadinessSummary, FreshnessSignal } from '../lib/types';
+import { levelColor, levelSoftBg, levelTextColor } from '../lib/readiness';
 
-export function Avatar({ person, size = 40 }: { person: Person; size?: number }) {
-  const s = STYLES[person.style];
+/* ─────────────────────────────────────────────────────────────────
+   Avatar — initials in a tinted square. visualKey carries no
+   personality claim; it is purely a stable color seed.
+   ───────────────────────────────────────────────────────────────── */
+const VISUAL_BG: Record<Person['visualKey'], string> = {
+  a: 'var(--driver-soft)',
+  b: 'var(--analyzer-soft)',
+  c: 'var(--connector-soft)',
+  d: 'var(--visionary-soft)',
+};
+const VISUAL_FG: Record<Person['visualKey'], string> = {
+  a: 'var(--driver-text)',
+  b: 'var(--analyzer-text)',
+  c: 'var(--connector-text)',
+  d: 'var(--visionary-text)',
+};
+
+export function Avatar({ person, size = 32 }: { person: Person; size?: number }) {
   return (
     <div
-      className={`av ${s.cls}`}
+      className="av"
       style={{
-        width: size,
-        height: size,
+        width: size, height: size,
         fontSize: Math.round(size * 0.36),
+        background: VISUAL_BG[person.visualKey],
+        color: VISUAL_FG[person.visualKey],
       }}
     >
       {person.initials}
@@ -17,32 +34,37 @@ export function Avatar({ person, size = 40 }: { person: Person; size?: number })
   );
 }
 
-export function StylePill({ styleKey }: { styleKey: StyleKey }) {
-  const s = STYLES[styleKey];
+export function TeamMark({ team, size = 28 }: { team: Team; size?: number }) {
   return (
-    <span className="pill" style={{ background: s.bg, color: s.fg }}>
-      ⚡ {s.label} · {s.desc}
-    </span>
-  );
-}
-
-const TIER_LABELS: Record<Tier, string> = {
-  gold: 'Gold', silver: 'Silver', bronze: 'Bronze', incomplete: 'Incomplete',
-};
-
-export function TierBadge({ tier }: { tier: Tier }) {
-  const star = tier === 'gold' ? '★ ' : '';
-  return <span className={`tier tier-${tier}`}>{star}{TIER_LABELS[tier]}</span>;
-}
-
-export function Bar({ value, color = 'var(--ink)', height = 5 }: { value: number; color?: string; height?: number }) {
-  return (
-    <div className="bar-track" style={{ height }}>
-      <div className="bar-fill" style={{ width: `${value}%`, background: color }} />
+    <div
+      className="team-mark"
+      style={{
+        width: size, height: size,
+        fontSize: Math.round(size * 0.34),
+        background: VISUAL_BG[team.visualKey],
+        color: VISUAL_FG[team.visualKey],
+      }}
+    >
+      {team.shortName.slice(0, 2).toUpperCase()}
     </div>
   );
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   Bar — generic progress bar.
+   ───────────────────────────────────────────────────────────────── */
+export function Bar({ value, color = 'var(--ink)', height = 5 }: { value: number; color?: string; height?: number }) {
+  return (
+    <div className="bar-track" style={{ height }}>
+      <div className="bar-fill" style={{ width: `${Math.max(0, Math.min(100, value))}%`, background: color }} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   Ring — circular progress. Kept from prior build; used in Home
+   and My Fieldguide hero.
+   ───────────────────────────────────────────────────────────────── */
 interface RingProps {
   value: number;
   max: number;
@@ -52,6 +74,7 @@ interface RingProps {
   trackColor?: string;
   label?: string;
   showValue?: boolean;
+  centerText?: string;
 }
 
 export function Ring({
@@ -61,12 +84,14 @@ export function Ring({
   trackColor = 'var(--rule-soft)',
   label,
   showValue = true,
+  centerText,
 }: RingProps) {
   const pct = Math.max(0, Math.min(value / max, 1));
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   const dash = c * pct;
   const fontSize = Math.max(11, Math.round(size * 0.22));
+  const displayText = centerText ?? `${Math.round(value)}${max === 100 ? '%' : ''}`;
 
   return (
     <div style={{ textAlign: 'center', display: 'inline-flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
@@ -89,7 +114,7 @@ export function Ring({
             fontSize={fontSize}
             fontWeight={500}
           >
-            {Math.round(value)}{max === 100 && '%'}
+            {displayText}
           </text>
         )}
       </svg>
@@ -100,6 +125,84 @@ export function Ring({
           textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600,
         }}>{label}</div>
       )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   ReadinessMeter — horizontal bar + status word.
+   Renders a readiness summary as a professional progress indicator.
+   ───────────────────────────────────────────────────────────────── */
+export function ReadinessMeter({
+  summary,
+  showRationale = false,
+  compact = false,
+}: { summary: ReadinessSummary; showRationale?: boolean; compact?: boolean }) {
+  const color = levelColor(summary.level);
+  return (
+    <div className={`readiness-meter${compact ? ' rm-compact' : ''}`}>
+      <div className="rm-row">
+        <span className="rm-label">{summary.label}</span>
+        <span className="rm-pct">{summary.pct}%</span>
+      </div>
+      <Bar value={summary.pct} color={color} height={compact ? 4 : 6} />
+      {showRationale && (
+        <div className="rm-rationale">{summary.rationale}</div>
+      )}
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   StatusPill — semantic status word.
+   ───────────────────────────────────────────────────────────────── */
+export function StatusPill({
+  level,
+  children,
+}: { level: ReadinessLevel; children: React.ReactNode }) {
+  return (
+    <span
+      className="status-pill"
+      style={{ background: levelSoftBg(level), color: levelTextColor(level) }}
+    >
+      {children}
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   FreshnessBadge — small marker tied to FreshnessSignal.
+   ───────────────────────────────────────────────────────────────── */
+export function FreshnessBadge({ signal }: { signal: FreshnessSignal | undefined }) {
+  if (!signal) {
+    return <span className="freshness fr-unknown">Freshness — n/a</span>;
+  }
+  const cls = signal.status === 'fresh' ? 'fr-fresh'
+    : signal.status === 'aging' ? 'fr-aging' : 'fr-stale';
+  const label = signal.status === 'fresh' ? 'Fresh'
+    : signal.status === 'aging' ? 'Aging' : 'Stale';
+  return (
+    <span className={`freshness ${cls}`}>
+      {label} · {signal.daysSinceUpdate}d
+    </span>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────────
+   SectionCard — a section block with title + body.
+   ───────────────────────────────────────────────────────────────── */
+export function SectionCard({
+  title,
+  meta,
+  children,
+}: { title: string; meta?: React.ReactNode; children: React.ReactNode }) {
+  return (
+    <div className="section">
+      <div className="section-head">
+        <span className="section-title">{title}</span>
+        {meta && <span className="section-meta">{meta}</span>}
+      </div>
+      {children}
     </div>
   );
 }

@@ -1,61 +1,47 @@
 import { useState } from 'react';
-import type { Person, ViewKey } from './lib/types';
+import type { ViewKey } from './lib/types';
 import { useTheme } from './lib/theme';
-import { INITIAL_USER, TEAM } from './data/people';
-import { GS_SECTIONS, GS_PRESETS } from './data/gamification';
+import { ME, PERSON_BY_ID } from './data/people';
+import { TEAM_BY_ID } from './data/teams';
+import { MEETING_BY_ID } from './data/meetings';
+import { AGREEMENT_BY_ID } from './data/agreements';
 
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
 
-import Dashboard from './views/Dashboard';
-import Edit from './views/Edit';
-import Team from './views/Team';
-import PersonView from './views/Person';
+import Home from './views/Home';
+import MyFieldguide from './views/MyFieldguide';
+import PeopleTeams from './views/PeopleTeams';
+import PersonDetail from './views/PersonDetail';
+import TeamDetail from './views/TeamDetail';
 import Meetings from './views/Meetings';
-import Leaderboard from './views/Leaderboard';
-import HRDashboard from './views/HRDashboard';
-import Settings from './views/Settings';
-import Roadmap from './views/Roadmap';
-import AllEmployees from './views/AllEmployees';
-import Methodology from './views/Methodology';
-
-const initialGS = (): Record<string, boolean> => {
-  const out: Record<string, boolean> = {};
-  const target = GS_PRESETS.balanced;
-  for (const sec of GS_SECTIONS) {
-    for (const o of sec.opts) out[o.id] = target.includes(o.id);
-  }
-  return out;
-};
+import MeetingDetail from './views/MeetingDetail';
+import WorkingAgreements from './views/WorkingAgreements';
+import AgreementDetail from './views/AgreementDetail';
+import OrgInsights from './views/OrgInsights';
+import Admin from './views/Admin';
 
 export default function App() {
-  const [view, setView] = useState<ViewKey>('dashboard');
-  const [user, setUser] = useState<Person>(INITIAL_USER);
+  const [view, setView] = useState<ViewKey>('home');
   const [personId, setPersonId] = useState<string | null>(null);
-  const [meetingId, setMeetingId] = useState<string>('m1');
-  const [gs, setGs] = useState<Record<string, boolean>>(initialGS);
+  const [teamId, setTeamId] = useState<string | null>(null);
+  const [meetingId, setMeetingId] = useState<string | null>(null);
+  const [agreementId, setAgreementId] = useState<string | null>(null);
   const [theme, toggleTheme] = useTheme();
 
-  const navigate = (v: ViewKey) => {
-    setView(v);
-    if (v === 'team') setPersonId(null);
-  };
+  const user = ME;
 
-  const openPerson = (id: string) => {
-    setPersonId(id);
-    setView('person');
-  };
-
-  const openMeeting = (id: string) => {
-    setMeetingId(id);
-    setView('meetings');
-  };
+  const navigate = (v: ViewKey) => setView(v);
+  const openPerson = (id: string)    => { setPersonId(id); setView('person'); };
+  const openTeam = (id: string)      => { setTeamId(id); setView('team'); };
+  const openMeeting = (id: string)   => { setMeetingId(id); setView('meeting'); };
+  const openAgreement = (id: string) => { setAgreementId(id); setView('agreement'); };
 
   let crumbName: string | undefined;
-  if (view === 'person' && personId) {
-    if (personId === 'me') crumbName = user.name;
-    else crumbName = TEAM.find((t) => t.id === personId)?.name;
-  }
+  if (view === 'person' && personId) crumbName = PERSON_BY_ID[personId]?.name;
+  if (view === 'team'   && teamId)   crumbName = TEAM_BY_ID[teamId]?.name;
+  if (view === 'meeting' && meetingId) crumbName = MEETING_BY_ID[meetingId]?.title;
+  if (view === 'agreement' && agreementId) crumbName = AGREEMENT_BY_ID[agreementId]?.title;
 
   return (
     <div className="app">
@@ -63,17 +49,17 @@ export default function App() {
       <main className="main">
         <TopBar view={view} crumbName={crumbName} user={user} theme={theme} onToggleTheme={toggleTheme} />
         <div className="view">
-          {view === 'dashboard'   && <Dashboard user={user} onEdit={() => setView('edit')} onOpenMeeting={openMeeting} />}
-          {view === 'edit'        && <Edit user={user} setUser={setUser} onDone={() => setView('dashboard')} />}
-          {view === 'team'        && <Team user={user} onOpenPerson={openPerson} />}
-          {view === 'person'      && <PersonView user={user} personId={personId} onBack={() => setView('team')} />}
-          {view === 'meetings'    && <Meetings user={user} meetingId={meetingId} setMeetingId={setMeetingId} />}
-          {view === 'leaderboard' && <Leaderboard />}
-          {view === 'hr'          && <HRDashboard />}
-          {view === 'employees'   && <AllEmployees user={user} onOpenPerson={openPerson} />}
-          {view === 'settings'    && <Settings gs={gs} setGs={setGs} />}
-          {view === 'methodology' && <Methodology />}
-          {view === 'roadmap'     && <Roadmap />}
+          {view === 'home'       && <Home user={user} onNavigate={navigate} onOpenMeeting={openMeeting} onOpenPerson={openPerson} onOpenTeam={openTeam} onOpenAgreement={openAgreement} />}
+          {view === 'mycard'     && <MyFieldguide user={user} onNavigate={navigate} />}
+          {view === 'people'     && <PeopleTeams user={user} onOpenPerson={openPerson} onOpenTeam={openTeam} />}
+          {view === 'person'     && <PersonDetail user={user} personId={personId} onBack={() => setView('people')} />}
+          {view === 'team'       && <TeamDetail user={user} teamId={teamId} onBack={() => setView('people')} onOpenPerson={openPerson} />}
+          {view === 'meetings'   && <Meetings user={user} onOpenMeeting={openMeeting} />}
+          {view === 'meeting'    && <MeetingDetail user={user} meetingId={meetingId} onBack={() => setView('meetings')} onOpenPerson={openPerson} />}
+          {view === 'agreements' && <WorkingAgreements user={user} onOpenAgreement={openAgreement} />}
+          {view === 'agreement'  && <AgreementDetail user={user} agreementId={agreementId} onBack={() => setView('agreements')} onOpenTeam={openTeam} />}
+          {view === 'insights'   && <OrgInsights />}
+          {view === 'admin'      && <Admin />}
         </div>
       </main>
     </div>

@@ -1,19 +1,20 @@
 import type { Person, ViewKey } from '../lib/types';
 import type { Theme } from '../lib/theme';
-import { IconFlame, IconSun, IconMoon } from './Icons';
+import { IconSun, IconMoon } from './Icons';
+import { ORGANIZATION } from '../data/enterprise';
 
 const LABELS: Record<ViewKey, string> = {
-  dashboard: 'Dashboard',
-  edit: 'My card',
-  team: 'Team',
-  person: 'Person',
-  meetings: 'Meetings',
-  leaderboard: 'Leaderboard',
-  hr: 'HR Dashboard',
-  employees: 'All employees',
-  settings: 'Settings',
-  methodology: 'Methodology',
-  roadmap: 'Roadmap',
+  home:       'Home',
+  mycard:     'My Fieldguide',
+  people:     'People & Teams',
+  meetings:   'Meetings',
+  agreements: 'Working Agreements',
+  insights:   'Org Insights',
+  admin:      'Admin',
+  person:     'Person',
+  team:       'Team',
+  meeting:    'Meeting',
+  agreement:  'Agreement',
 };
 
 interface Props {
@@ -24,21 +25,18 @@ interface Props {
   onToggleTheme: () => void;
 }
 
-export default function TopBar({ view, crumbName, user, theme, onToggleTheme }: Props) {
-  const crumbLabel = view === 'person' && crumbName ? crumbName : LABELS[view];
+export default function TopBar({ view, crumbName, user: _user, theme, onToggleTheme }: Props) {
+  const isDetail = view === 'person' || view === 'team' || view === 'meeting' || view === 'agreement';
+  const crumbLabel = isDetail && crumbName ? crumbName : LABELS[view];
 
   return (
     <div className="topbar">
       <div className="crumb">
-        {user.team}
+        {ORGANIZATION.name}
         <span style={{ margin: '0 8px', color: 'var(--subtle)' }}>/</span>
         <strong>{crumbLabel}</strong>
       </div>
       <div className="topbar-r">
-        <span className="streak-pill">
-          <IconFlame size={11} />
-          {user.streak}w streak
-        </span>
         <button
           className="theme-toggle"
           onClick={onToggleTheme}
