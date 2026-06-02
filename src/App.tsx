@@ -16,6 +16,8 @@ import Leaderboard from './views/Leaderboard';
 import HRDashboard from './views/HRDashboard';
 import Settings from './views/Settings';
 import Roadmap from './views/Roadmap';
+import AllEmployees from './views/AllEmployees';
+import Methodology from './views/Methodology';
 
 const initialGS = (): Record<string, boolean> => {
   const out: Record<string, boolean> = {};
@@ -68,7 +70,9 @@ export default function App() {
           {view === 'meetings'    && <Meetings user={user} meetingId={meetingId} setMeetingId={setMeetingId} />}
           {view === 'leaderboard' && <Leaderboard />}
           {view === 'hr'          && <HRDashboard />}
+          {view === 'employees'   && <AllEmployees user={user} onOpenPerson={openPerson} />}
           {view === 'settings'    && <Settings gs={gs} setGs={setGs} />}
+          {view === 'methodology' && <Methodology />}
           {view === 'roadmap'     && <Roadmap />}
         </div>
       </main>

@@ -11,14 +11,16 @@ interface NavEntry {
 }
 
 const NAV: NavEntry[] = [
-  { key: 'dashboard',   label: 'Dashboard',    Icon: IconDash,     section: 'employee' },
-  { key: 'edit',        label: 'My card',      Icon: IconUser,     section: 'employee' },
-  { key: 'team',        label: 'Team',         Icon: IconUsers,    section: 'employee' },
-  { key: 'meetings',    label: 'Meetings',     Icon: IconCal,      section: 'employee' },
-  { key: 'leaderboard', label: 'Leaderboard',  Icon: IconTrophy,   section: 'employee' },
-  { key: 'hr',          label: 'HR Dashboard', Icon: IconChart,    section: 'admin' },
-  { key: 'settings',    label: 'Settings',     Icon: IconSettings, section: 'admin' },
-  { key: 'roadmap',     label: 'Roadmap',      Icon: IconRoad,     section: 'meta' },
+  { key: 'dashboard',   label: 'Dashboard',     Icon: IconDash,     section: 'employee' },
+  { key: 'edit',        label: 'My card',       Icon: IconUser,     section: 'employee' },
+  { key: 'team',        label: 'Team',          Icon: IconUsers,    section: 'employee' },
+  { key: 'meetings',    label: 'Meetings',      Icon: IconCal,      section: 'employee' },
+  { key: 'leaderboard', label: 'Leaderboard',   Icon: IconTrophy,   section: 'employee' },
+  { key: 'hr',          label: 'HR Dashboard',  Icon: IconChart,    section: 'admin' },
+  { key: 'employees',   label: 'All employees', Icon: IconUsers,    section: 'admin' },
+  { key: 'settings',    label: 'Settings',      Icon: IconSettings, section: 'admin' },
+  { key: 'methodology', label: 'Methodology',   Icon: IconChart,    section: 'meta' },
+  { key: 'roadmap',     label: 'Roadmap',       Icon: IconRoad,     section: 'meta' },
 ];
 
 const SECTION_LABELS: Record<NavEntry['section'], string> = {

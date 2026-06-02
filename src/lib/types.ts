@@ -2,7 +2,8 @@ export type StyleKey = 'driver' | 'analyzer' | 'connector' | 'visionary';
 export type Tier = 'gold' | 'silver' | 'bronze' | 'incomplete';
 export type ViewKey =
   | 'dashboard' | 'edit' | 'team' | 'person' | 'meetings'
-  | 'leaderboard' | 'hr' | 'settings' | 'roadmap';
+  | 'leaderboard' | 'hr' | 'employees' | 'settings'
+  | 'methodology' | 'roadmap';
 
 export interface StyleConfig {
   label: string;
@@ -146,4 +147,13 @@ export interface Score {
   avg: number;
   fresh: boolean;
   tier: Tier;
+}
+
+export interface EngagementCell {
+  key: 'champions' | 'stale' | 'onboarding' | 'disengaged';
+  label: string;
+  desc: string;
+  count: number;
+  pct: number;
+  tone: 'success' | 'warning' | 'info' | 'danger';
 }

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import {
   KPIS, TREND, TEAMS_LB, STYLE_DIST, FRICTION, FRICTION_TEAMS,
-  FRICTION_DETAIL, NUDGES_DATA, INSIGHTS_DATA,
+  FRICTION_DETAIL, NUDGES_DATA, INSIGHTS_DATA, ENGAGEMENT_MATRIX,
 } from '../data/hr';
 import { STYLES } from '../data/styles';
 import {
   barColor, frictionColor, frictionTextColor, frictionLabel, frictionPillCss,
+  engagementToneCss,
 } from '../lib/scoring';
 import { Bar } from '../components/Shared';
 import type { Nudge, StyleKey } from '../lib/types';
@@ -75,7 +76,11 @@ export default function HRDashboard() {
 
       <div className="kpis">
         {KPIS.map((k) => (
-          <div key={k.label} className="kpi">
+          <div
+            key={k.label}
+            className="kpi"
+            style={{ '--accent-line': k.up ? 'var(--success)' : 'var(--muted)' } as React.CSSProperties}
+          >
             <div className="kpi-label">{k.label}</div>
             <div className="kpi-value">{k.value}</div>
             <div className={`kpi-delta ${k.up ? 'kpi-up' : 'kpi-flat'}`}>
@@ -152,6 +157,43 @@ export default function HRDashboard() {
             <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.65 }}>
               Acme skews <strong style={{ color: 'var(--ink)', fontWeight: 500 }}>Analyzer and Driver</strong> — an evidence-led culture that also moves fast. High-performing but friction-prone: the analytical teams want proof, the driver teams want speed. See the friction map below for where that costs you.
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section">
+        <div className="section-head">
+          <span className="section-title">Profile engagement</span>
+          <span className="section-meta">Completion × Freshness</span>
+        </div>
+        <div className="section-desc">
+          Every employee falls into one of four states. Champions are complete and current. Stale cards were once complete but haven&apos;t been refreshed in the quarter. Onboarding is anyone making recent progress. Disengaged is the priority intervention group.
+        </div>
+        <div className="card" style={{ padding: 18 }}>
+          <div className="matrix-row">
+            <span className="matrix-axis-label">↑ Complete (≥ 75%)</span>
+            <span className="matrix-axis-label">Stale (&gt; 90d) →</span>
+          </div>
+          <div className="matrix-grid">
+            {ENGAGEMENT_MATRIX.map((cell) => {
+              const t = engagementToneCss(cell.tone);
+              return (
+                <div
+                  key={cell.key}
+                  className="matrix-cell"
+                  style={{ background: t.bg, borderColor: t.border, color: t.fg }}
+                >
+                  <div className="matrix-count" style={{ color: t.accent }}>{cell.count}</div>
+                  <div className="matrix-label">{cell.label}</div>
+                  <div className="matrix-desc">{cell.desc}</div>
+                  <div className="matrix-pct">{cell.pct}% of org</div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="matrix-row" style={{ paddingTop: 4 }}>
+            <span className="matrix-axis-label">↓ Incomplete (&lt; 75%)</span>
+            <span className="matrix-axis-label">&larr; Fresh (≤ 90d)</span>
           </div>
         </div>
       </div>

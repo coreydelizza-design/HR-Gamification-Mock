@@ -3,7 +3,7 @@ import { computeScore, barColor } from '../lib/scoring';
 import { QUESTIONS } from '../data/questions';
 import { MEETINGS } from '../data/meetings';
 import { TEAM } from '../data/people';
-import { Avatar, Bar, StylePill, TierBadge } from '../components/Shared';
+import { Avatar, Bar, Ring, StylePill, TierBadge } from '../components/Shared';
 import { IconEdit, IconArrowRight } from '../components/Icons';
 
 function getPerson(id: string, user: Person): Person | null {
@@ -72,12 +72,14 @@ export default function Dashboard({ user, onEdit, onOpenMeeting }: Props) {
             </div>
           </div>
           <div className="hero-side">
-            <div className="ring-num">{sc.pct}%</div>
-            <div style={{ fontSize: 10.5, color: 'var(--muted)', marginTop: 4 }}>Profile complete</div>
-            <div style={{ width: '100%', marginTop: 8 }}>
-              <Bar value={sc.pct} color={barColor(sc.pct)} height={4} />
-            </div>
-            <div className="ring-sub">
+            <Ring
+              value={sc.pct}
+              max={100}
+              size={120}
+              stroke={6}
+              color={barColor(sc.pct)}
+            />
+            <div className="ring-sub" style={{ marginTop: 12 }}>
               {sc.answered} of {sc.total} questions<br />
               {sc.fresh ? 'Fresh · keep the streak' : 'Stale · refresh soon'}
             </div>
@@ -92,12 +94,12 @@ export default function Dashboard({ user, onEdit, onOpenMeeting }: Props) {
         </div>
         <div className="score-grid">
           {[
-            { l: 'Completion', v: `${sc.pct}%`, s: `${sc.answered} of 8 questions` },
-            { l: 'Freshness',  v: sc.fresh ? 'Fresh' : 'Stale', s: `Updated ${user.updatedDaysAgo}d ago` },
-            { l: 'Depth',      v: sc.depth, s: `${sc.avg} words / answer` },
-            { l: 'Streak',     v: `${user.streak}w`, s: 'Quarterly refresh hit' },
+            { l: 'Completion', v: `${sc.pct}%`, s: `${sc.answered} of 8 questions`, line: barColor(sc.pct) },
+            { l: 'Freshness',  v: sc.fresh ? 'Fresh' : 'Stale', s: `Updated ${user.updatedDaysAgo}d ago`, line: sc.fresh ? 'var(--success)' : 'var(--warning)' },
+            { l: 'Depth',      v: sc.depth, s: `${sc.avg} words / answer`, line: sc.depth === 'High' ? 'var(--success)' : sc.depth === 'Medium' ? 'var(--warning)' : 'var(--danger)' },
+            { l: 'Streak',     v: `${user.streak}w`, s: 'Quarterly refresh hit', line: 'var(--ink)' },
           ].map((it) => (
-            <div key={it.l} className="score-card">
+            <div key={it.l} className="score-card" style={{ '--accent-line': it.line } as React.CSSProperties}>
               <div className="score-card-label">{it.l}</div>
               <div className="score-card-value">{it.v}</div>
               <div className="score-card-sub">{it.s}</div>

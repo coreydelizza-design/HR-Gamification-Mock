@@ -10,7 +10,9 @@ const LABELS: Record<ViewKey, string> = {
   meetings: 'Meetings',
   leaderboard: 'Leaderboard',
   hr: 'HR Dashboard',
+  employees: 'All employees',
   settings: 'Settings',
+  methodology: 'Methodology',
   roadmap: 'Roadmap',
 };
 

@@ -1,4 +1,4 @@
-import type { FrictionDetail, Insight, KPI, Nudge, StyleKey, TeamLB, Trend } from '../lib/types';
+import type { EngagementCell, FrictionDetail, Insight, KPI, Nudge, StyleKey, TeamLB, Trend } from '../lib/types';
 
 export const TEAMS_LB: TeamLB[] = [
   { team: 'Engineering',          members: 24, pct: 94, style: 'Analyzer-heavy' },
@@ -66,4 +66,11 @@ export const INSIGHTS_DATA: Insight[] = [
   { color: 'var(--danger-soft)',  text: 'var(--danger-text)',  icon: '!', body: '<strong>Engineering ↔ Sales is your highest-friction pairing</strong> and they have 14 shared meetings next month. Pre-meeting briefs are now active for all of them.' },
   { color: 'var(--success-soft)', text: 'var(--success-text)', icon: '↗', body: '<strong>Sales completion jumped 18 points</strong> after the team challenge launched. Consider a charity-match reward to lock the gain.' },
   { color: 'var(--warning-soft)', text: 'var(--warning-text)', icon: '○', body: '<strong>11 profiles are going stale</strong> (80+ days), concentrated in Marketing. A targeted refresh nudge is queued for the Marketing manager.' },
+];
+
+export const ENGAGEMENT_MATRIX: EngagementCell[] = [
+  { key: 'champions',  label: 'Champions',  desc: 'Complete & current',           count: 38, pct: 38, tone: 'success' },
+  { key: 'stale',      label: 'Stale',      desc: 'Was engaged, now drifting',    count: 26, pct: 26, tone: 'warning' },
+  { key: 'onboarding', label: 'Onboarding', desc: 'Recent activity, in progress', count: 19, pct: 19, tone: 'info'    },
+  { key: 'disengaged', label: 'Disengaged', desc: 'Never started or churning',    count: 17, pct: 17, tone: 'danger'  },
 ];

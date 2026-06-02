@@ -47,3 +47,16 @@ export function frictionPillCss(v: number): string {
   if (v <= 50) return 'background:var(--warning-soft);color:var(--warning-text)';
   return 'background:var(--danger-soft);color:var(--danger-text)';
 }
+
+import type { EngagementCell } from './types';
+
+export function engagementToneCss(tone: EngagementCell['tone']): {
+  bg: string; border: string; fg: string; accent: string;
+} {
+  switch (tone) {
+    case 'success': return { bg: 'var(--success-soft)', border: 'var(--success-soft)', fg: 'var(--success-text)', accent: 'var(--success)' };
+    case 'warning': return { bg: 'var(--warning-soft)', border: 'var(--warning-soft)', fg: 'var(--warning-text)', accent: 'var(--warning)' };
+    case 'info':    return { bg: 'var(--surface-soft)', border: 'var(--rule)',         fg: 'var(--ink)',          accent: 'var(--muted)'   };
+    case 'danger':  return { bg: 'var(--danger-soft)',  border: 'var(--danger-soft)',  fg: 'var(--danger-text)',  accent: 'var(--danger)'  };
+  }
+}
