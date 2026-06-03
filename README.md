@@ -1,31 +1,52 @@
 # Fieldguide
 
-**How to work with me, structured.** A prototype HR product that helps teams break down silos by giving every employee a working-style profile, then surfacing the relational tension between people and teams.
+**The enterprise operating manual for how people, teams, and organizations work together.**
 
-This repository is Phase 1 of the product — the full UI prototype as a Vite + React + TypeScript build, deployable to Railway in one click.
+> Org charts show reporting structure. Fieldguide shows working structure.
+
+Fieldguide is a collaboration readiness platform. It captures how each person works, how each team operates, and how teams hand off to each other — then uses that context to make meetings ready, surface stale handoffs, and keep cross-team agreements healthy.
+
+Phase 1 is a Vite + React + TypeScript prototype with full static demo data, deployable to Railway with no backend.
 
 - 🌓 **Light + dark mode** with OS-preference detection and `localStorage` persistence
-- 🎨 **White-label ready** — change four CSS variables to fully rebrand
-- ⚪ **Monochrome by default** — neutral primary palette, categorical colors only where they convey meaning
+- 🎨 **White-label ready** — change four CSS variables at the top of `src/styles/index.css` to fully rebrand
+- 🧭 **Monochrome by default** — color is reserved for semantic readiness states (success / warning / danger / muted)
 
-## What's in here
+## Primary spine
 
-Nine navigable views demonstrating the full product surface:
+Person → Work Card → Team Card → Meeting Fit → Working Agreement → Impact Map → Org Intelligence
 
-**For employees**
-- `Dashboard` — Your card landing with completion ring and next meeting brief
-- `My card` — Edit the eight working-style questions with live scoring
-- `Team` — Filterable directory of all teammates
-- `Person` — The marquee "How to work with me" page (open from Team)
-- `Meetings` — AI-generated meeting briefs per attendee mix
-- `Leaderboard` — Team-vs-team rankings (no individual ranking)
+## The seven views
 
-**For HR**
-- `HR Dashboard` — KPIs, completion trend, working-style mix, cross-team friction heatmap, nudge queue
-- `Settings` — Gamification configurator with four presets
+**Workspace**
+- `Home` — what you need to know to work well today: your card readiness, the next meeting's fit, the people and teams you're about to engage, handoff clarity gaps, the six-category collaboration-readiness rollup, and the active operating norms in your Org Pack.
+- `My Fieldguide` — your individual operating manual. Ten sections (Communication, Meetings, Feedback, Decisions, Focus, Escalation, What I need from others, What others can count on me for, Visibility, Freshness). Per-section visibility and a Preview-as-teammate mode.
+- `People & Teams` — tabbed: People (working-context cards) and Teams (operating-entity cards).
+- `Meetings` — meeting fit and readiness, not meeting summaries. Each meeting shows attendee context, required team inputs, decision owner, prep gaps, async recommendation, suggested follow-up, and any governing agreement.
+- `Working Agreements` — first-class team-to-team operating agreements (mutual needs, required inputs, handoff checklist, meeting norms, escalation path, decision rights, common failure points, review cadence).
 
-**About the prototype**
-- `Roadmap` — Five-phase product plan from this build through enterprise governance
+**Organization**
+- `Org Insights` — aggregate operating clarity: adoption, freshness, handoff gaps, dependency gaps, advisory nudge queue. No individual rankings.
+- `Admin` — enterprise + organization configuration: Org Packs, required card sections, team templates, badge language, integrations, retention, consent and audit.
+
+Each view answers one or more of the six product questions:
+
+1. How do I work with this person?
+2. How do I work with this team?
+3. Is this meeting ready?
+4. What does this team need from us?
+5. What agreement governs this handoff?
+6. Where is operating clarity missing?
+
+## What Fieldguide is not
+
+- Not a personality test or working-style quiz.
+- Not a generic HR dashboard.
+- Not a gamified leaderboard or employee-ranking system.
+- Not a meeting-summary or transcription tool.
+- Not a system of record for hiring, firing, promotion, compensation, discipline, or performance decisions.
+
+The product enforces these boundaries at the data, UI, and gamification layers. See `docs/PRIVACY_GOVERNANCE_LOCK.md` and `docs/GAMIFICATION_LOCK.md`.
 
 ## Local development
 
@@ -43,22 +64,22 @@ npm run build
 npm run preview
 ```
 
-`preview` serves the built static assets on `${PORT:-4173}` — that's the script Railway runs.
+`preview` serves the built static assets on `${PORT:-4173}` — that is the script Railway runs.
 
 ## Deploy to Railway
 
-1. Push this repo to GitHub (GitHub Desktop: File → Add Local Repository → publish to GitHub)
-2. In Railway: **New Project → Deploy from GitHub repo → select this repo**
-3. Railway auto-detects Nixpacks and uses the `start` script (`npm run preview`)
-4. After the first deploy: service → **Settings → Networking → Generate Domain** for a public URL
+1. Push this repo to GitHub.
+2. In Railway: **New Project → Deploy from GitHub repo → select this repo**.
+3. Railway auto-detects Nixpacks and uses the `start` script (`npm run preview`).
+4. After the first deploy: service → **Settings → Networking → Generate Domain** for a public URL.
 
-No env vars needed for Phase 1 — the data is static, baked into `src/data/`.
+No env vars needed for Phase 1 — all data is static, baked into `src/data/`.
 
 ## Theming & white-labeling
 
 ### Toggle light / dark
 
-A sun/moon button in the top-right of every view toggles theme. The choice persists via `localStorage` (key: `fieldguide:theme`). First-time visitors get their OS preference (`prefers-color-scheme`) as default. An inline script in `index.html` applies the theme before paint to prevent a flash of incorrect colors.
+A sun/moon button in the top-right toggles theme. The choice persists via `localStorage` (key: `fieldguide:theme`). First-time visitors get their OS preference (`prefers-color-scheme`) as default. An inline script in `index.html` applies the theme before paint to prevent a flash of incorrect colors.
 
 ### White-label in 60 seconds
 
@@ -66,26 +87,14 @@ Open `src/styles/index.css` and edit the first block:
 
 ```css
 :root {
-  /* === BRAND === */
-  --brand: #0A0A0A;            /* Primary brand color (light mode) */
-  --brand-on: #FFFFFF;         /* Foreground on brand (light mode) */
-  --brand-dark: #FAFAFA;       /* Primary brand color (dark mode) */
-  --brand-on-dark: #0A0A0A;    /* Foreground on brand (dark mode) */
-
-  /* === CATEGORICAL === */
-  --cat-1: #B45309;            /* Driver — warm/assertive */
-  --cat-2: #1D4ED8;            /* Analyzer — cool/analytical */
-  --cat-3: #047857;            /* Connector — green/collaborative */
-  --cat-4: #6D28D9;            /* Visionary — violet/creative */
-
-  --cat-1-dark: #FBBF24;       /* Dark-mode variants */
-  --cat-2-dark: #60A5FA;
-  --cat-3-dark: #34D399;
-  --cat-4-dark: #A78BFA;
+  --brand: #0A0A0A;            /* Primary brand color (light mode)  */
+  --brand-on: #FFFFFF;         /* Foreground on brand (light mode)  */
+  --brand-dark: #FAFAFA;       /* Primary brand color (dark mode)   */
+  --brand-on-dark: #0A0A0A;    /* Foreground on brand (dark mode)   */
 }
 ```
 
-That's it. Every component reads from these variables — no need to grep through TSX files.
+That is it. Every component reads from these variables — no need to grep through TSX files.
 
 ### Add a new theme variant
 
@@ -94,72 +103,74 @@ Append a selector to `src/styles/index.css`:
 ```css
 [data-theme="brand-blue"] {
   --brand: #1E40AF;
-  /* override anything else */
 }
 ```
 
 Then set `data-theme="brand-blue"` on `<html>` from your code.
 
-### Component-level overrides
-
-All surfaces, text colors, borders, and status colors are CSS variables (`--surface`, `--ink`, `--muted`, `--rule`, `--success`, `--warning`, `--danger`). Inspect `src/styles/index.css` for the full list.
-
 ## Repo structure
 
 ```
 src/
-├── App.tsx                    Root component — view registry, state
-├── main.tsx                   React entry point
-├── styles/index.css           Full design system (CSS variables, components)
+├── App.tsx                       view registry, top-level state
+├── main.tsx                      React entry
+├── styles/index.css              full design system + collaboration patterns
 ├── lib/
-│   ├── types.ts               TypeScript interfaces for the data model
-│   ├── scoring.ts             Score computation + friction helpers
-│   └── theme.ts               useTheme hook (light/dark with persistence)
-├── data/                      All static data — extract this first when moving to Supabase
-│   ├── styles.ts              Working style configs
-│   ├── questions.ts           The eight questions
-│   ├── people.ts              User + 6 teammates
-│   ├── compat.ts              Compatibility scoring
-│   ├── meetings.ts            Sample meetings
-│   ├── hr.ts                  HR analytics
-│   ├── gamification.ts        5 categories, 22 mechanics, 4 presets
-│   └── roadmap.ts             Product roadmap
+│   ├── types.ts                  26-interface data model (Supabase-shaped)
+│   ├── readiness.ts              explainable, advisory readiness math
+│   └── theme.ts                  light/dark hook with persistence
+├── data/                         static demo data (extract first when moving to Supabase)
+│   ├── enterprise.ts             Enterprise + Organization + OrgPacks
+│   ├── cardSections.ts           Ten standard card sections
+│   ├── teams.ts                  Teams + TeamCards (operating entities)
+│   ├── people.ts                 People + WorkCards + CardAnswers
+│   ├── meetings.ts               Meetings + MeetingFitBriefs
+│   ├── agreements.ts             WorkingAgreements + sections + collaboration plumbing
+│   ├── badges.ts                 Allowed-badge catalog + earned badges
+│   ├── orgInsights.ts            Aggregate metrics + nudges + freshness signals
+│   ├── operatingNorms.ts         Active norms and partner org packs
+│   └── admin.ts                  Integrations, templates, retention, consent, audit
 ├── components/
-│   ├── Icons.tsx              Inline SVG icon set (no external deps)
-│   ├── Shared.tsx             Avatar, StylePill, TierBadge, Bar
-│   ├── Sidebar.tsx            Left nav
-│   └── TopBar.tsx             Breadcrumb, streak pill, theme toggle
-└── views/                     One file per view
-    ├── Dashboard.tsx
-    ├── Edit.tsx
-    ├── Team.tsx
-    ├── Person.tsx
-    ├── Meetings.tsx
-    ├── Leaderboard.tsx
-    ├── HRDashboard.tsx
-    ├── Settings.tsx
-    └── Roadmap.tsx
+│   ├── Icons.tsx                 Inline SVG icon set (no external deps)
+│   ├── Shared.tsx                Avatar, Bar, Ring, ReadinessMeter, StatusPill, FreshnessBadge, TeamMark
+│   ├── Sidebar.tsx               7-item primary nav
+│   └── TopBar.tsx                Breadcrumb + theme toggle
+└── views/                        Home, MyFieldguide, PeopleTeams, PersonDetail, TeamDetail,
+                                  Meetings, MeetingDetail, WorkingAgreements, AgreementDetail,
+                                  OrgInsights, Admin
 ```
 
 ## Design language
 
-- **Fonts**: Fraunces (serif, headings), Geist (sans, body), JetBrains Mono (numbers/codes)
-- **Default palette**: Monochrome — white/light gray surfaces over near-black text, inverted in dark mode
-- **Status colors**: green (success), amber (warning), red (danger) — used sparingly, semantic only
-- **Categorical**: four working styles get muted-but-distinct colors (override via `--cat-1` through `--cat-4`)
-- **Tier system**: Gold / Silver / Bronze / Incomplete (semantic, themed for both modes)
+- **Fonts**: Fraunces (serif, headings), Geist (sans, body), JetBrains Mono (numbers/codes).
+- **Default palette**: monochrome — white/light gray surfaces over near-black text, inverted in dark mode.
+- **Status colors**: green (success), amber (warning), red (danger), neutral muted. Used sparingly, semantic only.
+- **No personality-style color as primary identity.** Avatars use a deterministic visual key for color variety; the key carries no personality claim.
 
 ## Where to take it next (Phase 2)
 
-The data files in `src/data/` are the natural extraction point for moving to Supabase. Each maps to one or two tables:
+The data files in `src/data/` are the natural extraction point for moving to Supabase. Each maps cleanly to one or two tables — see `docs/OBJECT_MODEL_LOCK.md` for the table-by-table mapping.
 
-- `people.ts` → `people` + `answers` table
-- `compat.ts` → derived from `answers` at query time
-- `meetings.ts` → `meetings` + `meeting_attendees` join
-- `hr.ts` (friction) → derived from `people.style` aggregation per team
-- `gamification.ts` → `org_settings` table
+Integration layer next:
+- Slack / Microsoft Teams for nudge delivery and meeting fit briefs.
+- Google Calendar / Outlook for meeting context.
+- HRIS sync for team-membership freshness.
 
-Then the integrations layer: Slack app for brief delivery, Google Calendar / Outlook for invite injection, HRIS sync for org-chart auto-population. See the `Roadmap` view inside the app for full sequencing.
+Until then: static demo only. No Supabase, no auth, no backend.
+
+## Documentation
+
+The `docs/` directory contains the product-level locks that guide every change:
+
+- `PRODUCT_SPINE.md` — positioning, primary spine, forbidden directions.
+- `OBJECT_MODEL_LOCK.md` — 26-interface data model + future Supabase table map.
+- `GAMIFICATION_LOCK.md` — allowed readiness categories and badges; forbidden patterns.
+- `PRIVACY_GOVERNANCE_LOCK.md` — hard product boundaries on employment decisions.
+- `UI_NAVIGATION_LOCK.md` — primary nav and retired labels.
+- `ORG_PACKS.md` — multi-organization configuration model.
+- `MEETING_FIT_ENGINE.md` — what the engine answers and what it deliberately is not.
+- `WORKING_AGREEMENTS.md` — module shape and status lifecycle.
+- `BUILD_NOTES.md` — scripts, repo shape, future Supabase migration.
 
 ## License
 

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Fieldguide — How to work with me, structured. Employee working-style cards with HR analytics and gamification.",
+  "description": "Fieldguide — the enterprise operating manual for how people, teams, and organizations work together. Collaboration readiness, team cards, working agreements, and meeting fit.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
