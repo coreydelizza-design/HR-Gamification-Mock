@@ -78,7 +78,7 @@ export default function Sidebar({ view, user, onNavigate }: Props) {
           className="av"
           style={{
             width: 32, height: 32, fontSize: 12,
-            background: 'var(--driver-soft)', color: 'var(--driver-text)',
+            background: 'var(--accent-1-soft)', color: 'var(--accent-1-text)',
           }}
         >
           {user.initials}

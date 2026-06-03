@@ -2,20 +2,20 @@ import type { Person, Team, ReadinessLevel, ReadinessSummary, FreshnessSignal } 
 import { levelColor, levelSoftBg, levelTextColor } from '../lib/readiness';
 
 /* ─────────────────────────────────────────────────────────────────
-   Avatar — initials in a tinted square. visualKey carries no
-   personality claim; it is purely a stable color seed.
+   Avatar — initials in a tinted circle. visualKey is a deterministic
+   color seed only; it is not a personality identifier.
    ───────────────────────────────────────────────────────────────── */
 const VISUAL_BG: Record<Person['visualKey'], string> = {
-  a: 'var(--driver-soft)',
-  b: 'var(--analyzer-soft)',
-  c: 'var(--connector-soft)',
-  d: 'var(--visionary-soft)',
+  a: 'var(--accent-1-soft)',
+  b: 'var(--accent-2-soft)',
+  c: 'var(--accent-3-soft)',
+  d: 'var(--accent-4-soft)',
 };
 const VISUAL_FG: Record<Person['visualKey'], string> = {
-  a: 'var(--driver-text)',
-  b: 'var(--analyzer-text)',
-  c: 'var(--connector-text)',
-  d: 'var(--visionary-text)',
+  a: 'var(--accent-1-text)',
+  b: 'var(--accent-2-text)',
+  c: 'var(--accent-3-text)',
+  d: 'var(--accent-4-text)',
 };
 
 export function Avatar({ person, size = 32 }: { person: Person; size?: number }) {

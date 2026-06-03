@@ -94,6 +94,16 @@ export default function Home({ user, onNavigate, onOpenMeeting, onOpenPerson, on
     .slice(0, 3);
   const orgNudges = NUDGES.filter((n) => n.audience !== 'person').slice(0, 2);
 
+  const spineStages: Array<{ label: string; viewKey?: ViewKey; active?: boolean }> = [
+    { label: 'Person',            viewKey: 'people'     },
+    { label: 'Work Card',         viewKey: 'mycard'     },
+    { label: 'Team Card',         viewKey: 'people'     },
+    { label: 'Meeting Fit',       viewKey: 'meetings'   },
+    { label: 'Working Agreement', viewKey: 'agreements' },
+    { label: 'Impact Map'                                },
+    { label: 'Org Intelligence',  viewKey: 'insights'   },
+  ];
+
   return (
     <>
       <div style={{ marginBottom: 18 }}>
@@ -101,6 +111,22 @@ export default function Home({ user, onNavigate, onOpenMeeting, onOpenPerson, on
         <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>
           Here is what you need to know to work well today.
         </div>
+      </div>
+
+      <div className="spine-strip" aria-label="Product spine">
+        {spineStages.map((s, i) => (
+          <button
+            key={s.label}
+            type="button"
+            className={`spine-node${s.viewKey ? '' : ' spine-node-future'}`}
+            onClick={() => s.viewKey && onNavigate(s.viewKey)}
+            disabled={!s.viewKey}
+            title={s.viewKey ? `Open ${s.label}` : 'Impact Map — Phase 2'}
+          >
+            <span className="spine-index">{String(i + 1).padStart(2, '0')}</span>
+            <span className="spine-label">{s.label}</span>
+          </button>
+        ))}
       </div>
 
       <div className="home-grid">

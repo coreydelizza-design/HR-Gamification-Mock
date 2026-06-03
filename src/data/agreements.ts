@@ -104,7 +104,7 @@ export const AGREEMENT_SECTIONS: AgreementSection[] = [
     body: 'Solutions arriving before problems are framed. Estimates re-asked for after each meeting. Cross-team scope creep without re-baselining.',
     lastUpdatedAt: '2026-05-12T00:00:00Z' },
   { id: 'as-ep-9', agreementId: 'wa-eng-prod', key: 'review_cadence', label: 'Review cadence',
-    body: 'Reviewed every 90 days. Either side can request an out-of-cycle review when a recurring friction shows up twice.',
+    body: 'Reviewed every 90 days. Either side can request an out-of-cycle review when a recurring handoff problem shows up twice.',
     lastUpdatedAt: '2026-05-12T00:00:00Z' },
   { id: 'as-ep-10', agreementId: 'wa-eng-prod', key: 'success_signals', label: 'Success signals',
     body: 'Fewer planning escalations. More decisions made async. Pre-read confirmation rate above 80%.',
