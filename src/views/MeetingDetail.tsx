@@ -1,7 +1,8 @@
 import type { Person } from '../lib/types';
 import { MEETING_BY_ID, MEETING_ATTENDEES, FIT_BY_MEETING } from '../data/meetings';
-import { TEAM_BY_ID } from '../data/teams';
+import { TEAM_BY_ID, TEAM_CARD_BY_TEAM } from '../data/teams';
 import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS } from '../data/people';
+import { AGREEMENT_BY_ID } from '../data/agreements';
 import { FRESHNESS_SIGNALS } from '../data/orgInsights';
 import { meetingReadiness, cardReadiness, formatMeetingTime, levelColor } from '../lib/readiness';
 import { Avatar, Ring, ReadinessMeter, StatusPill, FreshnessBadge } from '../components/Shared';
@@ -91,13 +92,17 @@ export default function MeetingDetail({ user: _user, meetingId, onBack, onOpenPe
                   <div className="fit-cell-label">Required team inputs</div>
                   <div className="fit-cell-body">
                     <div className="fit-list">
-                      {brief.requiredInputs.map((i) => (
-                        <div key={i.teamId + i.input} className="fit-list-item">
-                          <span className={i.received ? 'fit-check' : 'fit-cross'}>{i.received ? '✓' : '○'}</span>
-                          <span>{i.input} <span style={{ color: 'var(--muted)' }}>— {TEAM_BY_ID[i.teamId]?.shortName ?? i.teamId}</span></span>
-                          <span style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>{i.received ? 'in' : 'pending'}</span>
-                        </div>
-                      ))}
+                      {brief.requiredInputs.map((i) => {
+                        const team = TEAM_BY_ID[i.teamId];
+                        const tc = team ? TEAM_CARD_BY_TEAM[team.id] : undefined;
+                        return (
+                          <div key={i.teamId + i.input} className="fit-list-item" title={tc ? `${team!.name}: ${tc.mission}` : team?.name}>
+                            <span className={i.received ? 'fit-check' : 'fit-cross'}>{i.received ? '✓' : '○'}</span>
+                            <span>{i.input} <span style={{ color: 'var(--muted)' }}>— {team?.shortName ?? i.teamId}</span></span>
+                            <span style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace" }}>{i.received ? 'in' : 'pending'}</span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>
@@ -112,8 +117,19 @@ export default function MeetingDetail({ user: _user, meetingId, onBack, onOpenPe
                     )}
                   </div>
                 </div>
+                {brief.governingAgreementId && (
+                  <div className="fit-cell">
+                    <div className="fit-cell-label">Governing agreement</div>
+                    <div className="fit-cell-body">
+                      {AGREEMENT_BY_ID[brief.governingAgreementId]?.title ?? '—'}
+                      <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+                        The handoff and escalation rules from this agreement apply to the meeting.
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {brief.asyncRecommendation && (
-                  <div className="fit-cell" style={{ gridColumn: '1 / -1' }}>
+                  <div className="fit-cell">
                     <div className="fit-cell-label">Async recommendation</div>
                     <div className="fit-cell-body">{brief.asyncRecommendation}</div>
                   </div>

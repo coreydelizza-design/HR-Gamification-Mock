@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import type { Person, AgreementStatus } from '../lib/types';
+import type { Person } from '../lib/types';
 import { WORKING_AGREEMENTS, AGREEMENT_SECTIONS } from '../data/agreements';
 import { TEAM_BY_ID } from '../data/teams';
-import { handoffReadiness } from '../lib/readiness';
+import { handoffReadiness, agreementStatusLabel, agreementStatusLevel } from '../lib/readiness';
 import { ReadinessMeter, StatusPill } from '../components/Shared';
 
 interface Props {
@@ -10,39 +10,47 @@ interface Props {
   onOpenAgreement: (id: string) => void;
 }
 
-const TAB_LABEL: Record<'draft' | 'published' | 'all', string> = {
-  draft: 'Drafts & review',
-  published: 'Published',
-  all: 'All',
+type Tab = 'all' | 'in_progress' | 'published' | 'attention';
+
+const TAB_LABEL: Record<Tab, string> = {
+  all:         'All',
+  in_progress: 'Draft · Shared · Mutual review',
+  published:   'Published',
+  attention:   'Needs refresh',
 };
 
-export default function WorkingAgreements({ user: _user, onOpenAgreement }: Props) {
-  const [tab, setTab] = useState<'draft' | 'published' | 'all'>('all');
+function inTab(status: string, tab: Tab): boolean {
+  if (tab === 'all') return true;
+  if (tab === 'in_progress') return status === 'draft' || status === 'shared' || status === 'mutual_review';
+  if (tab === 'published') return status === 'published';
+  if (tab === 'attention') return status === 'needs_refresh';
+  return true;
+}
 
-  const visible = WORKING_AGREEMENTS.filter((a) => {
-    if (tab === 'all') return true;
-    if (tab === 'draft') return a.status === 'draft' || a.status === 'review';
-    if (tab === 'published') return a.status === 'published';
-    return true;
-  });
+function statusBadgeClass(status: string): string {
+  if (status === 'published') return 'admin-status admin-status-connected';
+  if (status === 'needs_refresh') return 'admin-status admin-status-coming';
+  return 'admin-status admin-status-available';
+}
+
+export default function WorkingAgreements({ user: _user, onOpenAgreement }: Props) {
+  const [tab, setTab] = useState<Tab>('all');
+
+  const visible = WORKING_AGREEMENTS.filter((a) => inTab(a.status, tab));
 
   return (
     <>
       <div style={{ marginBottom: 14 }}>
         <div className="display" style={{ fontSize: 24 }}>Working Agreements</div>
         <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>
-          Team-to-team operating agreements: mutual needs, required inputs, escalation paths, handoff checklists, and review cadence.
+          Team-to-team operating agreements: mutual needs, required inputs, escalation paths, handoff checklists, decision rights, and review cadence.
         </div>
       </div>
 
       <div className="tab-strip">
-        {(['all', 'published', 'draft'] as const).map((k) => (
+        {(['all', 'published', 'in_progress', 'attention'] as const).map((k) => (
           <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>
-            {TAB_LABEL[k]} ({WORKING_AGREEMENTS.filter((a) => {
-              if (k === 'all') return true;
-              if (k === 'draft') return a.status === 'draft' || a.status === 'review';
-              return a.status === 'published';
-            }).length})
+            {TAB_LABEL[k]} ({WORKING_AGREEMENTS.filter((a) => inTab(a.status, k)).length})
           </button>
         ))}
       </div>
@@ -50,7 +58,6 @@ export default function WorkingAgreements({ user: _user, onOpenAgreement }: Prop
       <div>
         {visible.map((a) => {
           const summary = handoffReadiness(a, AGREEMENT_SECTIONS);
-          const status: AgreementStatus = a.status;
           const teams = a.teamIds.map((id) => TEAM_BY_ID[id]).filter(Boolean);
           return (
             <div key={a.id} className="row-card" onClick={() => onOpenAgreement(a.id)}>
@@ -62,10 +69,10 @@ export default function WorkingAgreements({ user: _user, onOpenAgreement }: Prop
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <span className={`admin-status admin-status-${status === 'published' ? 'connected' : status === 'review' ? 'coming' : 'available'}`}>
-                    {status}
+                  <span className={statusBadgeClass(a.status)}>
+                    {agreementStatusLabel(a.status)}
                   </span>
-                  <StatusPill level={summary.level}>{summary.label}</StatusPill>
+                  <StatusPill level={agreementStatusLevel(a.status)}>{agreementStatusLabel(a.status)}</StatusPill>
                 </div>
               </div>
               <div className="row-card-body">{summary.rationale}</div>

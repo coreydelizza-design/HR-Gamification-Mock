@@ -1,6 +1,6 @@
 import type {
-  Person, WorkCard, TeamCard, CardAnswer, Meeting, MeetingFitBrief, MeetingAttendee,
-  WorkingAgreement, AgreementSection, FreshnessSignal, ReadinessSummary, ReadinessLevel,
+  Person, WorkCard, TeamCard, CardAnswer, Meeting, MeetingFitBrief, MeetingFitStatus, MeetingAttendee,
+  WorkingAgreement, AgreementStatus, AgreementSection, FreshnessSignal, ReadinessSummary, ReadinessLevel,
 } from './types';
 import { CARD_SECTIONS } from '../data/cardSections';
 import { ACTIVE_ORG_PACK } from '../data/enterprise';
@@ -101,6 +101,25 @@ export function teamReadiness(
 /* ─────────────────────────────────────────────────────────────────
    3. Meeting Readiness — uses the MeetingFitBrief.
    ───────────────────────────────────────────────────────────────── */
+const FIT_STATUS_LABEL: Record<MeetingFitStatus, string> = {
+  draft:             'Draft',
+  ready:             'Ready',
+  decision_ready:    'Decision-ready',
+  async_recommended: 'Async recommended',
+  at_risk:           'At risk',
+};
+
+const FIT_STATUS_LEVEL: Record<MeetingFitStatus, ReadinessLevel> = {
+  draft:             'attention',
+  ready:             'ready',
+  decision_ready:    'ready',
+  async_recommended: 'almost',
+  at_risk:           'attention',
+};
+
+export function meetingFitLabel(status: MeetingFitStatus): string { return FIT_STATUS_LABEL[status]; }
+export function meetingFitLevel(status: MeetingFitStatus): ReadinessLevel { return FIT_STATUS_LEVEL[status]; }
+
 export function meetingReadiness(
   brief: MeetingFitBrief | undefined,
   attendees: MeetingAttendee[],
@@ -120,11 +139,16 @@ export function meetingReadiness(
 
   const pct = Math.round((inputsScore * 0.4 + agendaScore * 0.35 + prereadScore * 0.25) * 100);
 
+  // Honor the brief's declared status for the level/label (operations override score),
+  // but keep the percentage as the underlying signal.
+  const level = FIT_STATUS_LEVEL[brief.status];
+  const label = FIT_STATUS_LABEL[brief.status];
+
   const rationale = brief.prepGaps.length > 0
     ? `Open prep items: ${brief.prepGaps[0]}${brief.prepGaps.length > 1 ? ` (+${brief.prepGaps.length - 1} more)` : ''}.`
     : 'Inputs received, agenda complete, pre-reads confirmed.';
 
-  return { level: bucket(pct), pct, label: LEVEL_LABEL[bucket(pct)], rationale };
+  return { level, pct, label, rationale };
 }
 
 /* ─────────────────────────────────────────────────────────────────
@@ -176,14 +200,39 @@ export function freshnessSummary(signal: FreshnessSignal | undefined): Readiness
 /* ─────────────────────────────────────────────────────────────────
    6. Agreement Coverage — across a list of agreements.
    ───────────────────────────────────────────────────────────────── */
+const AGREEMENT_STATUS_LABEL: Record<AgreementStatus, string> = {
+  draft:         'Draft',
+  shared:        'Shared',
+  mutual_review: 'Mutual review',
+  published:     'Published',
+  needs_refresh: 'Needs refresh',
+  archived:      'Archived',
+};
+
+const AGREEMENT_STATUS_LEVEL: Record<AgreementStatus, ReadinessLevel> = {
+  draft:         'attention',
+  shared:        'almost',
+  mutual_review: 'almost',
+  published:     'ready',
+  needs_refresh: 'almost',
+  archived:      'unknown',
+};
+
+export function agreementStatusLabel(s: AgreementStatus): string { return AGREEMENT_STATUS_LABEL[s]; }
+export function agreementStatusLevel(s: AgreementStatus): ReadinessLevel { return AGREEMENT_STATUS_LEVEL[s]; }
+
 export function agreementCoverage(agreements: WorkingAgreement[]): ReadinessSummary {
   if (agreements.length === 0) {
     return { level: 'unknown', pct: 0, label: LEVEL_LABEL.unknown, rationale: 'No agreements found.' };
   }
   const published = agreements.filter((a) => a.status === 'published').length;
-  const inReview = agreements.filter((a) => a.status === 'review').length;
+  const inReview = agreements.filter((a) => a.status === 'mutual_review' || a.status === 'shared').length;
+  const refresh = agreements.filter((a) => a.status === 'needs_refresh').length;
   const pct = Math.round((published / agreements.length) * 100);
-  const rationale = `${published} of ${agreements.length} agreements published${inReview ? ` (${inReview} in review)` : ''}.`;
+  const rationale = `${published} of ${agreements.length} published`
+    + (inReview ? `, ${inReview} in review` : '')
+    + (refresh ? `, ${refresh} need refresh` : '')
+    + '.';
   return { level: bucket(pct), pct, label: LEVEL_LABEL[bucket(pct)], rationale };
 }
 

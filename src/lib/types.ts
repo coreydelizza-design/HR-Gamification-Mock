@@ -185,10 +185,18 @@ export interface TeamCard {
   // What the team owns / produces / needs
   mission: string;
   weOwn: string[];
+  weDontOwn: string[];          // explicit non-ownership
   weProduce: string[];
-  weNeed: string[];
+  weNeed: string[];             // required inputs
   bestEngagement: string;       // how to engage this team well
+  commonBlockers: string[];     // what slows this team down
+  responseExpectations: string; // typical response time / cadence
+  escalationPath: string;       // who to escalate to, when
+  decisionRights: string[];     // what calls this team owns
   decisionOwners: string[];     // names/role of approvers
+  meetingNorms: string;         // how this team prefers meetings
+  partnerTeamIds: string[];     // partner team references
+  downstreamImpact: string;     // who depends on this team's output
   visibility: VisibilityScope;
   publishedAt?: string;
   lastUpdatedAt: string;
@@ -201,6 +209,8 @@ export interface CardAnswer {
   cardKind: CardKind;
   sectionKey: CardSectionKey;
   body: string;
+  // Per-section visibility override. If absent, falls back to card visibility.
+  visibility?: VisibilityScope;
   lastUpdatedAt: string;
 }
 
@@ -241,10 +251,17 @@ export interface MeetingAttendee {
  * MeetingFitBrief — the readiness summary surfaced before a meeting.
  * Advisory, explainable, never punitive. No individual scoring.
  */
+export type MeetingFitStatus =
+  | 'draft'
+  | 'ready'
+  | 'decision_ready'
+  | 'async_recommended'
+  | 'at_risk';
+
 export interface MeetingFitBrief {
   id: string;
   meetingId: string;
-  status: 'ready' | 'almost' | 'not_ready';
+  status: MeetingFitStatus;
   attendeeContext: string;      // narrative summary of attendee work-context
   agendaReadiness: 'complete' | 'partial' | 'missing';
   requiredInputs: Array<{ teamId: string; input: string; received: boolean }>;
@@ -252,6 +269,8 @@ export interface MeetingFitBrief {
   prepGaps: string[];
   asyncRecommendation?: string; // optional: "this could be a doc"
   suggestedFollowUp: string;
+  // Optional reference to a Working Agreement that governs this meeting.
+  governingAgreementId?: string;
 }
 
 
@@ -289,7 +308,13 @@ export interface Dependency {
 /* ─────────────────────────────────────────────────────────────────
    Working Agreements
    ───────────────────────────────────────────────────────────────── */
-export type AgreementStatus = 'draft' | 'review' | 'published' | 'archived';
+export type AgreementStatus =
+  | 'draft'
+  | 'shared'
+  | 'mutual_review'
+  | 'published'
+  | 'needs_refresh'
+  | 'archived';
 
 export interface WorkingAgreement {
   id: string;
@@ -304,10 +329,14 @@ export interface WorkingAgreement {
 }
 
 export type AgreementSectionKey =
-  | 'mutual_needs'
+  | 'team_a_needs'
+  | 'team_b_needs'
   | 'required_inputs'
-  | 'escalation_path'
   | 'handoff_checklist'
+  | 'meeting_norms'
+  | 'escalation_path'
+  | 'decision_rights'
+  | 'common_failure_points'
   | 'review_cadence'
   | 'success_signals';
 

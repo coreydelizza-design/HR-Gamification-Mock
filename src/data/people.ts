@@ -104,17 +104,18 @@ export const WORK_CARD_BY_PERSON: Record<string, WorkCard> = Object.fromEntries(
    Coverage is intentionally uneven across the roster to surface
    readiness gaps.
    ───────────────────────────────────────────────────────────────── */
-const ans = (id: string, cardId: string, sectionKey: CardAnswer['sectionKey'], body: string, updated: string): CardAnswer => ({
+const ans = (id: string, cardId: string, sectionKey: CardAnswer['sectionKey'], body: string, updated: string, visibility?: CardAnswer['visibility']): CardAnswer => ({
   id, cardId, cardKind: 'work', sectionKey, body, lastUpdatedAt: updated,
+  ...(visibility ? { visibility } : {}),
 });
 
 export const CARD_ANSWERS: CardAnswer[] = [
   // Alex Morgan (p-me) — well-covered
   ans('a-me-1', 'wc-me', 'communication',     'Slack DM during 8am–4pm MT. Email otherwise. Phone for true urgency — if it is on the phone, I assume it is on fire.', '2026-05-29T00:00:00Z'),
   ans('a-me-2', 'wc-me', 'meetings',          'Pre-read everything. I will skim once and want the meeting to start at the decision. Time-box to 25 minutes.', '2026-05-29T00:00:00Z'),
-  ans('a-me-3', 'wc-me', 'feedback',          'Direct, immediate, and private. Skip the compliment sandwich — it makes me distrust the compliment and miss the point.', '2026-05-15T00:00:00Z'),
+  ans('a-me-3', 'wc-me', 'feedback',          'Direct, immediate, and private. Skip the compliment sandwich — it makes me distrust the compliment and miss the point.', '2026-05-15T00:00:00Z', 'team'),
   ans('a-me-4', 'wc-me', 'decisions',         'Data-informed, fast, low-ego. Bring me new evidence and I will reverse without hesitation.', '2026-05-29T00:00:00Z'),
-  ans('a-me-5', 'wc-me', 'focus',             '7–11am is deep focus. Post-lunch I crash and then get a second wind around 3pm.', '2026-05-15T00:00:00Z'),
+  ans('a-me-5', 'wc-me', 'focus',             '7–11am is deep focus. Post-lunch I crash and then get a second wind around 3pm.', '2026-05-15T00:00:00Z', 'private'),
   ans('a-me-6', 'wc-me', 'escalation',        'For cross-team blockers, pull me in directly. Do not wait for the next planning cycle.', '2026-05-29T00:00:00Z'),
   ans('a-me-7', 'wc-me', 'needs_from_others', 'Real autonomy, a weekly checkpoint instead of daily oversight, and a pre-read.', '2026-05-15T00:00:00Z'),
   ans('a-me-8', 'wc-me', 'count_on_me',       'Closing loops, naming the decision, and unblocking cross-team work.', '2026-05-29T00:00:00Z'),

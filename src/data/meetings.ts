@@ -78,7 +78,7 @@ export const MEETING_ATTENDEES: MeetingAttendee[] = [
 export const MEETING_FIT_BRIEFS: MeetingFitBrief[] = [
   {
     id: 'mfb-q3-plan', meetingId: 'mtg-q3-plan',
-    status: 'almost',
+    status: 'at_risk',
     attendeeContext: 'Mixed group: a Director who works in writing, a PM who needs a pre-read, an EM who processes in silence before committing, and a Marketing Director who thinks by talking. The pre-read will land for two of them; the other two need a 5-minute pre-call.',
     agendaReadiness: 'partial',
     requiredInputs: [
@@ -95,10 +95,11 @@ export const MEETING_FIT_BRIEFS: MeetingFitBrief[] = [
     ],
     asyncRecommendation: 'Send a one-page theme draft asynchronously this evening; the meeting can shrink to 25 minutes of decision-only.',
     suggestedFollowUp: 'Publish themes and owners in #strategy within 24h of the meeting; do not relitigate in next week\'s standing sync.',
+    governingAgreementId: 'wa-strat-all',
   },
   {
     id: 'mfb-1-1-mr', meetingId: 'mtg-1-1-mr',
-    status: 'ready',
+    status: 'decision_ready',
     attendeeContext: 'Marcus reads tone better than text. Open warm, name the decision early, and leave space for the quiet processing. He will commit once he has heard what his team thinks.',
     agendaReadiness: 'complete',
     requiredInputs: [
@@ -108,6 +109,7 @@ export const MEETING_FIT_BRIEFS: MeetingFitBrief[] = [
     decisionOwnerPersonId: 'p-me',
     prepGaps: [],
     suggestedFollowUp: 'Post the decision in #engineering by EOD and update the working agreement next review.',
+    governingAgreementId: 'wa-eng-prod',
   },
   {
     id: 'mfb-data-review', meetingId: 'mtg-data-review',
@@ -126,7 +128,7 @@ export const MEETING_FIT_BRIEFS: MeetingFitBrief[] = [
   },
   {
     id: 'mfb-pricing', meetingId: 'mtg-pricing',
-    status: 'not_ready',
+    status: 'async_recommended',
     attendeeContext: 'Pricing decision with the deal owner who has not confirmed the pre-read, plus Marketing who needs a concrete artifact to react to, plus CS who needs to understand the renewal impact.',
     agendaReadiness: 'missing',
     requiredInputs: [
@@ -143,6 +145,7 @@ export const MEETING_FIT_BRIEFS: MeetingFitBrief[] = [
     ],
     asyncRecommendation: 'Move this to a written decision memo. Hold a 15-minute call to confirm only.',
     suggestedFollowUp: 'Publish a decision log within 24h and update the Sales↔Product working agreement next review.',
+    governingAgreementId: 'wa-prod-sales',
   },
 ];
 

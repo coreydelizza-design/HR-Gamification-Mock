@@ -96,7 +96,7 @@ export default function TeamDetail({ user: _user, teamId, onBack, onOpenPerson }
         <>
           <div className="section">
             <div className="section-head">
-              <span className="section-title">What this team owns and produces</span>
+              <span className="section-title">What this team owns and does not own</span>
             </div>
             <div className="agree-grid">
               <div className="agree-block">
@@ -108,6 +108,16 @@ export default function TeamDetail({ user: _user, teamId, onBack, onOpenPerson }
                 </div>
               </div>
               <div className="agree-block">
+                <div className="agree-block-label">We do not own</div>
+                <div className="agree-block-body">
+                  {card.weDontOwn.length === 0 ? <span style={{ color: 'var(--muted)' }}>Not specified.</span> : (
+                    <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.6 }}>
+                      {card.weDontOwn.map((x) => <li key={x}>{x}</li>)}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              <div className="agree-block">
                 <div className="agree-block-label">We produce</div>
                 <div className="agree-block-body">
                   <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.6 }}>
@@ -116,20 +126,82 @@ export default function TeamDetail({ user: _user, teamId, onBack, onOpenPerson }
                 </div>
               </div>
               <div className="agree-block">
-                <div className="agree-block-label">We need from partner teams</div>
+                <div className="agree-block-label">Required inputs</div>
                 <div className="agree-block-body">
                   <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.6 }}>
                     {card.weNeed.map((x) => <li key={x}>{x}</li>)}
                   </ul>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="section-head">
+              <span className="section-title">How to engage this team</span>
+            </div>
+            <div className="agree-grid">
               <div className="agree-block">
-                <div className="agree-block-label">How to engage well</div>
+                <div className="agree-block-label">Engagement</div>
                 <div className="agree-block-body">{card.bestEngagement}</div>
               </div>
-              <div className="agree-block" style={{ gridColumn: '1 / -1' }}>
-                <div className="agree-block-label">Decision owners</div>
-                <div className="agree-block-body">{card.decisionOwners.join(' · ')}</div>
+              <div className="agree-block">
+                <div className="agree-block-label">Response expectations</div>
+                <div className="agree-block-body">{card.responseExpectations}</div>
+              </div>
+              <div className="agree-block">
+                <div className="agree-block-label">Common blockers</div>
+                <div className="agree-block-body">
+                  {card.commonBlockers.length === 0 ? <span style={{ color: 'var(--muted)' }}>None declared.</span> : (
+                    <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.6 }}>
+                      {card.commonBlockers.map((x) => <li key={x}>{x}</li>)}
+                    </ul>
+                  )}
+                </div>
+              </div>
+              <div className="agree-block">
+                <div className="agree-block-label">Meeting norms</div>
+                <div className="agree-block-body">{card.meetingNorms}</div>
+              </div>
+              <div className="agree-block">
+                <div className="agree-block-label">Escalation path</div>
+                <div className="agree-block-body">{card.escalationPath}</div>
+              </div>
+              <div className="agree-block">
+                <div className="agree-block-label">Decision rights</div>
+                <div className="agree-block-body">
+                  <ul style={{ margin: 0, paddingLeft: 16, lineHeight: 1.6 }}>
+                    {card.decisionRights.map((x) => <li key={x}>{x}</li>)}
+                  </ul>
+                  <div style={{ marginTop: 8, color: 'var(--muted)', fontSize: 11.5 }}>
+                    Owners: {card.decisionOwners.join(' · ')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <div className="section-head">
+              <span className="section-title">Partner teams and downstream impact</span>
+            </div>
+            <div className="agree-grid">
+              <div className="agree-block">
+                <div className="agree-block-label">Partner teams</div>
+                <div className="agree-block-body">
+                  {card.partnerTeamIds.length === 0 ? <span style={{ color: 'var(--muted)' }}>None declared.</span> : (
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                      {card.partnerTeamIds.map((tid) => {
+                        const pt = TEAM_BY_ID[tid];
+                        return pt ? <span key={tid} className="badge-chip"><span className="bc-label">{pt.name}</span></span> : null;
+                      })}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <div className="agree-block">
+                <div className="agree-block-label">Downstream impact</div>
+                <div className="agree-block-body">{card.downstreamImpact}</div>
               </div>
             </div>
           </div>

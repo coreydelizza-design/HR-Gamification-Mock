@@ -2,7 +2,7 @@ import type { Person } from '../lib/types';
 import { AGREEMENT_BY_ID, AGREEMENT_SECTIONS } from '../data/agreements';
 import { TEAM_BY_ID } from '../data/teams';
 import { PERSON_BY_ID } from '../data/people';
-import { handoffReadiness, levelColor } from '../lib/readiness';
+import { handoffReadiness, agreementStatusLabel, agreementStatusLevel, levelColor } from '../lib/readiness';
 import { Ring, ReadinessMeter, StatusPill } from '../components/Shared';
 import { IconArrowLeft } from '../components/Icons';
 
@@ -11,6 +11,12 @@ interface Props {
   agreementId: string | null;
   onBack: () => void;
   onOpenTeam: (id: string) => void;
+}
+
+function statusBadgeClass(status: string): string {
+  if (status === 'published') return 'admin-status admin-status-connected';
+  if (status === 'needs_refresh') return 'admin-status admin-status-coming';
+  return 'admin-status admin-status-available';
 }
 
 export default function AgreementDetail({ user: _user, agreementId, onBack, onOpenTeam }: Props) {
@@ -51,8 +57,8 @@ export default function AgreementDetail({ user: _user, agreementId, onBack, onOp
               Authored by {author?.name ?? '—'} · review every {agreement.reviewCadenceDays} days · next {new Date(agreement.nextReviewAt).toLocaleDateString()}
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 12 }}>
-              <span className={`admin-status admin-status-${agreement.status === 'published' ? 'connected' : agreement.status === 'review' ? 'coming' : 'available'}`}>{agreement.status}</span>
-              <StatusPill level={summary.level}>{summary.label}</StatusPill>
+              <span className={statusBadgeClass(agreement.status)}>{agreementStatusLabel(agreement.status)}</span>
+              <StatusPill level={agreementStatusLevel(agreement.status)}>{agreementStatusLabel(agreement.status)}</StatusPill>
             </div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 14 }}>
               {teams.map((t) => (
