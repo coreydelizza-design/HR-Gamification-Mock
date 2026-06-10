@@ -38,7 +38,13 @@ export interface Enterprise {
   createdAt: string;
 }
 
-export interface Organization {
+/**
+ * Tenant — the customer account root (one enterprise instance).
+ * (v2 called this `Organization`; in the v3 organization-first model the
+ * word "Organization" is reserved for a department/function, so the tenant
+ * record is named `Tenant`. See the v3 block at the bottom of this file.)
+ */
+export interface Tenant {
   id: string;
   enterpriseId: string;
   name: string;
@@ -65,6 +71,13 @@ export interface OrgPack {
   badgeLanguage: BadgeLanguagePack;
   nudgeCadenceDays: number;
   dataRetentionDays: number;
+  // ── v3 organization-first additions (optional so v2 packs still satisfy) ──
+  appliesToCategory?: OrganizationCategory;
+  intakeFields?: string[];
+  handoffTemplate?: string[];        // default handoff checklist items
+  decisionRightsTemplate?: string[];
+  successMetrics?: string[];
+  freshnessCadenceDays?: number;
 }
 
 export type VisibilityScope = 'org' | 'team' | 'partners' | 'private';
@@ -471,4 +484,448 @@ export interface ReadinessSummary {
   pct: number;                  // 0–100
   label: string;                // short status word
   rationale: string;            // plain-language "why"
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   V3 — ORGANIZATION-FIRST MODEL
+   The Organization Card is the primary product object. Individual work
+   cards survive only as nested supporting context.
+
+   Migration contract (same discipline as v2): string IDs, *Id foreign
+   keys, ISO timestamps. Prose-heavy card sections are flattened as
+   string / string[] fields on OrganizationCard — Phase 1 is static.
+   ═══════════════════════════════════════════════════════════════════ */
+
+export type OrganizationCategory =
+  | 'leadership'
+  | 'technology'
+  | 'revenue'
+  | 'customer'
+  | 'people'
+  | 'finance_legal'
+  | 'operations';
+
+export type OrgTier = 1 | 2;
+
+/** Maturity of an organization's operating clarity. */
+export type OrgMaturity = 'forming' | 'developing' | 'established' | 'leading';
+
+/** Freshness lifecycle for cards and agreements. */
+export type FreshnessState = 'fresh' | 'aging' | 'stale' | 'unpublished';
+
+/**
+ * Organization — a department / function. The primary operating entity.
+ * Hierarchy: Enterprise → Organization → Team → Role → Individual.
+ */
+export interface Organization {
+  id: string;
+  enterpriseId: string;
+  name: string;
+  category: OrganizationCategory;
+  tier: OrgTier;
+  mission: string;
+  executiveOwner: string;       // executive accountable (name · title)
+  operatingOwner: string;       // day-to-day operating lead (name · title)
+  parentOrgId?: string;
+  orgPackId: string;
+  memberCount: number;
+  partnerOrgIds: string[];
+  freshness: FreshnessState;
+  lastReviewedAt: string;
+  nextReviewAt: string;
+  visibility: VisibilityScope;
+  createdAt: string;
+}
+
+/* ── Card sub-structures ────────────────────────────────────────── */
+
+export interface OrgMetric {
+  label: string;
+  value: string;
+  kind: 'leading' | 'lagging' | 'capacity' | 'quality' | 'operating';
+  trend?: 'up' | 'down' | 'flat';
+}
+
+export interface RequiredInput {
+  input: string;
+  fromOrgId?: string;           // upstream organization, when known
+  format: string;
+  timing: string;
+  qualityBar: string;
+}
+
+export interface EngagementModel {
+  howToEngage: string;
+  intakeProcess: string;
+  intakeFields: string[];
+  contactChannel: string;
+  responseRhythm: string;
+  officeHours?: string;
+  cadenceStyle: 'async_first' | 'meeting_first' | 'balanced';
+  escalationPath: string;
+  decisionRights: string[];
+  approvalRights: string[];
+}
+
+export interface OrgMeetingNorms {
+  includeWhen: string[];
+  doNotIncludeWhen: string[];
+  requiredPreRead: string;
+  requiredAgenda: string;
+  requiredDecisionOwner: boolean;
+  preferredLength: string;
+  preferredCadence: string;
+  asyncAlternatives: string[];
+  recurringRules: string;
+}
+
+export interface HandoffRule {
+  id: string;
+  name: string;
+  checklist: string[];
+  definitionOfReady: string[];
+  definitionOfDone: string[];
+  requiredApprovals: string[];
+  requiredArtifacts: string[];
+  handoffOwner: string;
+  receivingOrgId?: string;
+  failureModes: string[];
+  recoveryPath: string;
+}
+
+export type OrgRiskKind =
+  | 'operational' | 'dependency' | 'capacity' | 'decision'
+  | 'handoff' | 'meeting' | 'stakeholder' | 'stale_knowledge';
+
+export interface OrgRisk {
+  kind: OrgRiskKind;
+  description: string;
+  severity: 'low' | 'medium' | 'high';
+  mitigation?: string;
+}
+
+/** The 13-section card keys (Overview / Dependencies / Agreements / People /
+ *  Freshness are joined from other records; the rest live on OrganizationCard). */
+export type OrgCardSectionKey =
+  | 'overview'
+  | 'how_succeeds'
+  | 'what_owns'
+  | 'what_needs'
+  | 'how_helps'
+  | 'dependencies'
+  | 'engagement'
+  | 'meeting_norms'
+  | 'handoff_rules'
+  | 'agreements'
+  | 'people'
+  | 'risks'
+  | 'freshness';
+
+/**
+ * OrganizationCard — the prose content for an Organization, flattened.
+ * Sections 1/6/10/11/13 are derived (Organization, OrgDependency,
+ * SuccessAgreement, RoleCard/Person, freshness). The rest are carried here.
+ * `publishedSections` lists which of the 13 keys actually have content
+ * (Tier-2 cards publish fewer — honest about depth, structurally identical).
+ */
+export interface OrganizationCard {
+  id: string;
+  orgId: string;
+
+  // 2 · How this organization succeeds
+  missionCriticalOutcomes: string[];
+  successConditions: string[];
+  leadingIndicators: string[];
+  laggingIndicators: string[];
+  operatingMetrics: OrgMetric[];
+  capacitySignals: string[];
+  qualitySignals: string[];
+  riskSignals: string[];
+  stakeholderOutcomes: string[];
+  maturityLevel: OrgMaturity;
+  currentBlockers: string[];
+  nextBestActions: string[];
+
+  // 3 · What this organization owns
+  responsibilities: string[];
+  services: string[];
+  systems: string[];
+  decisions: string[];
+  processes: string[];
+  businessOutcomes: string[];
+  artifactsProduced: string[];
+  governanceAreas: string[];
+  notOwned: string[];
+
+  // 4 · What this organization needs from others
+  requiredInputs: RequiredInput[];
+  missingInputFailureModes: string[];
+  escalationTriggers: string[];
+  commonMisconceptions: string[];
+  reworkCauses: string[];
+  delayCauses: string[];
+
+  // 5 · How this organization helps others succeed
+  outputs: string[];
+  servicesOffered: string[];
+  expertise: string[];
+  decisionSupport: string[];
+  enablement: string[];
+  riskReduction: string[];
+  acceleration: string[];
+  advisoryRole: string[];
+  reusableArtifacts: string[];
+  serviceExpectations: string[];   // SLEs
+  bestWaysToEngage: string[];
+
+  // 7 · Engagement model
+  engagement: EngagementModel;
+  // 8 · Meeting norms
+  meetingNorms: OrgMeetingNorms;
+  // 9 · Handoff rules
+  handoffRules: HandoffRule[];
+  // 12 · Risks and blockers
+  risks: OrgRisk[];
+
+  publishedSections: OrgCardSectionKey[];
+  lastUpdatedAt: string;
+}
+
+/* ── Cross-org needs / offers / dependencies (first-class) ──────── */
+
+export type DependencyStrength = 'critical' | 'strong' | 'moderate' | 'weak';
+export type DependencyHealth = 'healthy' | 'at_risk' | 'blocked' | 'unknown';
+
+export interface OrgDependency {
+  id: string;
+  fromOrgId: string;            // the org that depends (downstream consumer)
+  toOrgId: string;              // the org depended on (upstream provider)
+  description: string;
+  requiredInput: string;
+  outputProvided: string;
+  strength: DependencyStrength;
+  health: DependencyHealth;
+  risk: string;
+  gaps: string[];
+  owner: string;
+  reviewCadence: string;
+  governingAgreementId?: string;
+}
+
+export interface OrgNeed {
+  id: string;
+  ownerOrgId: string;           // who needs it
+  needFromOrgId: string;        // who provides it
+  description: string;
+  format: string;
+  timing: string;
+  status: 'open' | 'covered' | 'gap';
+  coveredByAgreementId?: string;
+}
+
+export interface OrgOffer {
+  id: string;
+  ownerOrgId: string;           // who offers it
+  offeredToOrgId: string;       // beneficiary
+  description: string;
+  serviceLevel: string;         // SLE
+  active: boolean;
+}
+
+/* ── Success Agreements (v2 Working Agreements, org-first) ───────── */
+
+export type SuccessAgreementSectionKey =
+  | 'shared_business_outcome'
+  | 'a_needs_from_b'
+  | 'b_needs_from_a'
+  | 'required_inputs'
+  | 'required_outputs'
+  | 'handoff_checklist'
+  | 'decision_rights'
+  | 'approval_rights'
+  | 'meeting_norms'
+  | 'escalation_path'
+  | 'common_failure_modes'
+  | 'service_expectations'
+  | 'review_cadence';
+
+export interface SuccessAgreement {
+  id: string;
+  title: string;
+  orgIds: string[];                       // participating organizations
+  status: AgreementStatus;                // reuse the six-state lifecycle
+  sharedBusinessOutcome: string;
+  reviewCadenceDays: number;
+  nextReviewAt: string;
+  lastUpdatedAt: string;
+  ownerByOrg: Record<string, string>;     // orgId → owner name
+  freshness: FreshnessState;
+}
+
+export interface SuccessAgreementSection {
+  id: string;
+  agreementId: string;
+  key: SuccessAgreementSectionKey;
+  label: string;
+  body: string;
+  lastUpdatedAt: string;
+}
+
+/** A recommended clause emitted by cross-org analysis (a gap with no cover). */
+export interface SuccessAgreementClause {
+  forGap: string;
+  recommendation: string;
+  rationale: string;
+}
+
+/* ── Organization-first meetings ────────────────────────────────── */
+
+export interface OrgMeeting {
+  id: string;
+  title: string;
+  startsAt: string;
+  durationMinutes: number;
+  participatingOrgIds: string[];
+  requiredOrgIds: string[];
+  attendeePersonIds: string[];
+  decisionOwnerPersonId: string;
+  decisionRequested: string;
+  agendaSummary: string;
+  governingAgreementId?: string;
+}
+
+export interface OrgMeetingFit {
+  id: string;
+  meetingId: string;
+  status: MeetingFitStatus;               // reuse v2 status enum
+  requiredInputs: Array<{ orgId: string; input: string; received: boolean }>;
+  missingOrgIds: string[];                // required orgs not represented
+  agendaReadiness: 'complete' | 'partial' | 'missing';
+  decisionOwnerPresent: boolean;
+  formatMatchesNorms: boolean;
+  asyncRecommendation?: string;
+  handoffImpact: string;
+  createsOrResolvesRisk: string;
+  followUpOwnerPersonId: string;
+  nextBestAction: string;
+}
+
+/* ── Collaboration map ──────────────────────────────────────────── */
+
+export interface CollabEdge {
+  id: string;
+  sourceOrgId: string;          // provider / upstream
+  targetOrgId: string;          // consumer / downstream
+  dependencyType: string;
+  strength: DependencyStrength;
+  health: DependencyHealth;
+  requiredInput: string;
+  outputProvided: string;
+  risk: string;
+  governingAgreementId?: string;
+}
+
+/* ── Nested individual context (demoted) ────────────────────────── */
+
+export interface RoleCard {
+  id: string;
+  orgId: string;
+  title: string;
+  personId?: string;            // filled role, when assigned
+  responsibilities: string[];
+  decisionRights: string[];
+  smeTags: string[];
+}
+
+/** Alias: WorkCard remains the nested individual card record. */
+export type IndividualWorkCard = WorkCard;
+
+/* ── Org intelligence ───────────────────────────────────────────── */
+
+export interface OrgInsight {
+  id: string;
+  metricKey: string;
+  label: string;
+  value: number;
+  unit: 'count' | 'pct';
+  detail: string;
+}
+
+export type OrgNudgeKind =
+  | 'stale_card' | 'missing_section' | 'agreement_review'
+  | 'handoff_gap' | 'undefined_inputs' | 'meeting_not_ready';
+
+export interface OrgNudge {
+  id: string;
+  orgId: string;
+  kind: OrgNudgeKind;
+  message: string;              // advisory, org-level, never punitive
+  triggeredAt: string;
+}
+
+/* ── Org-readiness badges (awarded to organizations / teams) ─────── */
+
+export type OrgBadgeKey =
+  | 'org_card_published'
+  | 'success_model_complete'
+  | 'inputs_defined'
+  | 'handoff_ready'
+  | 'agreement_verified'
+  | 'fresh_this_quarter'
+  | 'decision_rights_clear'
+  | 'escalation_path_clear'
+  | 'partner_org_ready'
+  | 'meeting_fit_ready';
+
+export interface OrgBadge {
+  id: string;
+  key: OrgBadgeKey;
+  label: string;
+  description: string;          // explainable, non-punitive
+  awardedTo: 'organization' | 'team';
+  awardedToOrgId: string;
+  awardedAt: string;
+  awardedReason: string;
+}
+
+/* ── Analysis engine outputs (lib/orgAnalysis.ts) ───────────────── */
+
+export interface OrgDimension {
+  key: string;
+  label: string;
+  summary: ReadinessSummary;
+}
+
+export interface OrgHelpLink {
+  orgId: string;
+  why: string;
+}
+
+export interface OrgSuccessAnalysis {
+  orgId: string;
+  successReadinessScore: number;          // 0–100
+  scoreRationale: string;
+  level: ReadinessLevel;
+  dimensions: OrgDimension[];             // 11 explainable dimensions
+  topEnablers: string[];
+  topRisks: string[];
+  helpNeededFrom: OrgHelpLink[];
+  helpOfferedTo: OrgHelpLink[];
+  nextBestActions: string[];
+}
+
+export interface CrossOrgSuccessAnalysis {
+  orgAId: string;
+  orgBId: string;
+  mutualSummary: string;
+  aNeedsFromB: string[];
+  bNeedsFromA: string[];
+  aHelpsB: string[];
+  bHelpsA: string[];
+  sharedOutcomes: string[];
+  frictionPoints: string[];               // org-level only — never a person
+  recommendedClauses: SuccessAgreementClause[];
+  meetingGuidance: string;
+  nextBestActions: string[];
 }

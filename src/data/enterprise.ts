@@ -1,4 +1,4 @@
-import type { Enterprise, Organization, OrgPack, MeetingFitRule, BadgeLanguagePack } from '../lib/types';
+import type { Enterprise, Tenant, OrgPack, MeetingFitRule, BadgeLanguagePack } from '../lib/types';
 
 const DEFAULT_BADGE_LANGUAGE: BadgeLanguagePack = {
   meetingReady: 'Meeting Ready',
@@ -70,7 +70,7 @@ export const ENTERPRISE: Enterprise = {
   createdAt: '2024-01-15T00:00:00Z',
 };
 
-export const ORGANIZATION: Organization = {
+export const ORGANIZATION: Tenant = {
   id: 'org-acme-na',
   enterpriseId: 'ent-acme',
   name: 'Acme North America',
