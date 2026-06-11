@@ -218,6 +218,14 @@ export function updateOrgCardSection(
   commit({ ...state, orgCards, modified: true });
 }
 
+/** Patch organization-level (overview) fields. */
+export function updateOrganization(orgId: string, patch: Partial<Organization>): void {
+  const organizations = state.organizations.map((o) =>
+    o.id === orgId ? { ...o, ...patch, lastReviewedAt: new Date().toISOString() } : o,
+  );
+  commit({ ...state, organizations, modified: true });
+}
+
 export function updateCommercialProfile(orgId: string, profile: OrgCommercialProfile): void {
   const orgCards = state.orgCards.map((c) =>
     c.orgId === orgId

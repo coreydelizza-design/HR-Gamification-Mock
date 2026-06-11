@@ -1,4 +1,5 @@
-import type { RequiredInput } from '../lib/types';
+import { useState } from 'react';
+import type { RequiredInput, OrgCardSectionKey } from '../lib/types';
 import { ORG_CATEGORY_LABEL } from '../data/organizations';
 import { useOrgData } from '../lib/demoStore';
 import { ORG_DEPENDENCIES } from '../data/orgDependencies';
@@ -8,15 +9,16 @@ import { ROLE_CARDS_BY_ORG, PEOPLE_BY_ORG } from '../data/roleCards';
 import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS } from '../data/people';
 import { successFor, orgName } from '../lib/orgData';
 import { levelColor } from '../lib/readiness';
-import { Ring, StatusPill } from '../components/Shared';
-import { IconArrowLeft } from '../components/Icons';
+import { Ring } from '../components/Shared';
+import { IconArrowLeft, IconEdit } from '../components/Icons';
 import {
   Panel, LabeledList, Chips, MetricStrip, RiskList, NextBestActions,
   EngagementModelPanel, MeetingNormsPanel, HandoffRulesPanel,
   DependencyPanel, NeedsOffersPanel, NestedIndividualCard, RoleCardPreview,
-  CategoryTag, OrgFreshnessBadge, OrgPackBadge, DimensionGrid,
+  CategoryTag, OrgFreshnessBadge, OrgPackBadge, DimensionGrid, CommercialStrip,
   SuccessAgreementCard,
 } from '../components/Org';
+import { SectionEditor, isSectionEditable } from '../components/CardEditors';
 
 interface Props {
   orgId: string | null;
@@ -33,7 +35,7 @@ function RequiredInputs({ inputs }: { inputs: RequiredInput[] }) {
         <div key={i} className="home-list-item" style={{ gridTemplateColumns: '1fr auto', cursor: 'default' }}>
           <div>
             <div className="hli-title" style={{ fontWeight: 500, fontSize: 12.5 }}>{ri.input}</div>
-            <div className="hli-sub">{ri.format} · {ri.timing} · quality bar: {ri.qualityBar}</div>
+            <div className="hli-sub">{[ri.format, ri.timing, ri.qualityBar && `quality bar: ${ri.qualityBar}`].filter(Boolean).join(' · ')}</div>
           </div>
           {ri.fromOrgId && <span className="mono" style={{ fontSize: 10.5, color: 'var(--muted)' }}>{orgName(ri.fromOrgId)}</span>}
         </div>
@@ -44,6 +46,9 @@ function RequiredInputs({ inputs }: { inputs: RequiredInput[] }) {
 
 export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpenAgreement }: Props) {
   const { orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
+  const [editMode, setEditMode] = useState(false);
+  const [editingSection, setEditingSection] = useState<OrgCardSectionKey | null>(null);
+
   const org = orgId ? ORG_BY_ID[orgId] : undefined;
   if (!org) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Organization not found. <button className="detail-back" onClick={onBack}>Back</button></div>;
 
@@ -54,7 +59,31 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
   const roleCards = ROLE_CARDS_BY_ORG[org.id] ?? [];
   const peopleIds = PEOPLE_BY_ORG[org.id] ?? [];
 
-  const NotPublished = () => <div className="card-section-empty">Section not yet published — this card publishes at catalog depth.</div>;
+  // A section wrapper that swaps read-only content for the structured editor.
+  const Section = ({ k, title, n, children }: { k: OrgCardSectionKey; title: string; n: string; children: React.ReactNode }) => {
+    const editable = isSectionEditable(k);
+    const isEditing = editingSection === k;
+    const action = editable && !isEditing ? (
+      <button className={`sec-pencil ${editMode ? 'sec-pencil-on' : ''}`} title={`Edit · ${title}`} onClick={() => setEditingSection(k)}>
+        <IconEdit size={14} />
+      </button>
+    ) : undefined;
+    return (
+      <Panel title={title} n={n} action={action}>
+        {isEditing && card
+          ? <SectionEditor org={org} card={card} sectionKey={k} onDone={() => setEditingSection(null)} />
+          : children}
+      </Panel>
+    );
+  };
+
+  // Empty-state body: shows an "Add it" CTA that jumps into the editor.
+  const NotPublished = ({ k }: { k: OrgCardSectionKey }) => (
+    <div className="card-section-empty" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      Section not yet published.
+      {isSectionEditable(k) && <button className="btn-ghost btn-sm" onClick={() => setEditingSection(k)}>+ Add it</button>}
+    </div>
+  );
 
   return (
     <>
@@ -76,22 +105,39 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             <span className="tier-chip mono">Tier {org.tier}</span>
           </div>
         </div>
-        {analysis && (
-          <div style={{ textAlign: 'center' }}>
-            <Ring value={analysis.successReadinessScore} max={100} size={92} stroke={6} color={levelColor(analysis.level)} />
-            <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.06em' }}>Success readiness</div>
-          </div>
-        )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 10 }}>
+          <button className={editMode ? 'btn-primary btn-sm' : 'btn-ghost btn-sm'} onClick={() => { setEditMode((e) => !e); setEditingSection(null); }}>
+            <IconEdit size={13} /> {editMode ? 'Done editing' : 'Edit'}
+          </button>
+          {analysis && (
+            <div style={{ textAlign: 'center' }}>
+              <Ring value={analysis.successReadinessScore} max={100} size={84} stroke={6} color={levelColor(analysis.level)} />
+              <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 2, fontFamily: "'JetBrains Mono', monospace", textTransform: 'uppercase', letterSpacing: '0.06em' }}>Success readiness</div>
+            </div>
+          )}
+        </div>
       </div>
 
+      {editMode && (
+        <div style={{ fontSize: 11.5, color: 'var(--muted)', marginBottom: 6, background: 'var(--surface-soft)', border: '1px solid var(--rule)', borderRadius: 8, padding: '8px 12px' }}>
+          Editing — click the pencil on any section to edit it with structured inputs. Saving recomputes readiness live.
+        </div>
+      )}
+
       {/* 1 · Overview */}
-      <Panel title="Overview" n="01">
+      <Section k="overview" title="Overview" n="01">
         <div className="agree-grid">
           <div className="agree-block"><div className="agree-block-label">Executive owner</div><div className="agree-block-body">{org.executiveOwner}</div></div>
           <div className="agree-block"><div className="agree-block-label">Operating owner</div><div className="agree-block-body">{org.operatingOwner}</div></div>
           <div className="agree-block"><div className="agree-block-label">Category · members</div><div className="agree-block-body">{ORG_CATEGORY_LABEL[org.category]} · {org.memberCount} people</div></div>
-          <div className="agree-block"><div className="agree-block-label">Key partner orgs</div><div className="agree-block-body">{org.partnerOrgIds.map(orgName).join(', ')}</div></div>
+          <div className="agree-block"><div className="agree-block-label">Key partner orgs</div><div className="agree-block-body">{org.partnerOrgIds.length ? org.partnerOrgIds.map(orgName).join(', ') : '—'}</div></div>
         </div>
+        {card?.commercial && (
+          <div style={{ marginTop: 14 }}>
+            <div className="lbl-list-label">Commercial profile</div>
+            <CommercialStrip profile={card.commercial} />
+          </div>
+        )}
         {analysis && (
           <div style={{ marginTop: 14 }}>
             <div className="lbl-list-label">Success readiness — {analysis.dimensions.length} explainable dimensions</div>
@@ -99,10 +145,10 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 8 }}>{analysis.scoreRationale}</div>
           </div>
         )}
-      </Panel>
+      </Section>
 
       {/* 2 · How this organization succeeds */}
-      <Panel title="How this organization succeeds" n="02">
+      <Section k="how_succeeds" title="How this organization succeeds" n="02">
         {published.has('how_succeeds') && card ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <MetricStrip metrics={card.operatingMetrics} />
@@ -125,11 +171,11 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
               <div><div className="lbl-list-label">Next best actions</div><NextBestActions actions={card.nextBestActions} /></div>
             )}
           </div>
-        ) : <NotPublished />}
-      </Panel>
+        ) : <NotPublished k="how_succeeds" />}
+      </Section>
 
       {/* 3 · What this organization owns */}
-      <Panel title="What this organization owns" n="03">
+      <Section k="what_owns" title="What this organization owns" n="03">
         {published.has('what_owns') && card ? (
           <div className="agree-grid">
             <LabeledList label="Responsibilities" items={card.responsibilities} />
@@ -142,11 +188,11 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             <LabeledList label="Governance areas" items={card.governanceAreas} />
             <div style={{ gridColumn: '1 / -1' }}><LabeledList label="Explicitly NOT owned" items={card.notOwned} empty="Non-ownership not yet stated — a common source of friction." /></div>
           </div>
-        ) : <NotPublished />}
-      </Panel>
+        ) : <NotPublished k="what_owns" />}
+      </Section>
 
       {/* 4 · What this organization needs from others */}
-      <Panel title="What this organization needs from others" n="04">
+      <Section k="what_needs" title="What this organization needs from others" n="04">
         {published.has('what_needs') && card ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
             <div><div className="lbl-list-label">Required inputs</div><RequiredInputs inputs={card.requiredInputs} /></div>
@@ -158,11 +204,11 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
               <LabeledList label="Delay causes" items={card.delayCauses} />
             </div>
           </div>
-        ) : <NotPublished />}
-      </Panel>
+        ) : <NotPublished k="what_needs" />}
+      </Section>
 
       {/* 5 · How this organization helps others succeed */}
-      <Panel title="How this organization helps others succeed" n="05">
+      <Section k="how_helps" title="How this organization helps others succeed" n="05">
         {published.has('how_helps') && card ? (
           <div className="agree-grid">
             <LabeledList label="Outputs" items={card.outputs} />
@@ -177,45 +223,45 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             <LabeledList label="Service expectations (SLEs)" items={card.serviceExpectations} />
             <div style={{ gridColumn: '1 / -1' }}><LabeledList label="Best ways to engage" items={card.bestWaysToEngage} /></div>
           </div>
-        ) : <NotPublished />}
-      </Panel>
+        ) : <NotPublished k="how_helps" />}
+      </Section>
 
       {/* 6 · Cross-org dependencies */}
-      <Panel title="Cross-org dependencies" n="06">
+      <Section k="dependencies" title="Cross-org dependencies" n="06">
         <DependencyPanel org={org} dependencies={ORG_DEPENDENCIES} orgName={orgName} onOpenOrg={onOpenOrg} />
         <div style={{ marginTop: 16 }}>
           <NeedsOffersPanel org={org} needs={ORG_NEEDS} offers={ORG_OFFERS} orgName={orgName} />
         </div>
-      </Panel>
+      </Section>
 
       {/* 7 · Engagement model */}
-      <Panel title="Engagement model" n="07">
-        {card ? <EngagementModelPanel card={card} /> : <NotPublished />}
-      </Panel>
+      <Section k="engagement" title="Engagement model" n="07">
+        {card ? <EngagementModelPanel card={card} /> : <NotPublished k="engagement" />}
+      </Section>
 
       {/* 8 · Meeting norms */}
-      <Panel title="Meeting norms" n="08">
-        {card ? <MeetingNormsPanel card={card} /> : <NotPublished />}
-      </Panel>
+      <Section k="meeting_norms" title="Meeting norms" n="08">
+        {card ? <MeetingNormsPanel card={card} /> : <NotPublished k="meeting_norms" />}
+      </Section>
 
       {/* 9 · Handoff rules */}
-      <Panel title="Handoff rules" n="09">
-        {published.has('handoff_rules') && card ? <HandoffRulesPanel card={card} /> : <NotPublished />}
-      </Panel>
+      <Section k="handoff_rules" title="Handoff rules" n="09">
+        {published.has('handoff_rules') && card ? <HandoffRulesPanel card={card} /> : <NotPublished k="handoff_rules" />}
+      </Section>
 
       {/* 10 · Success agreements */}
-      <Panel title="Success agreements" n="10">
+      <Section k="agreements" title="Success agreements" n="10">
         {agreements.length === 0 ? <span className="card-section-empty">No Success Agreements cover this organization yet.</span> : (
           <div>{agreements.map((a) => (
             <SuccessAgreementCard key={a.id} agreement={a} orgNames={a.orgIds.map(orgName)} onOpen={onOpenAgreement} />
           ))}</div>
         )}
-      </Panel>
+      </Section>
 
       {/* 11 · People and role cards */}
-      <Panel title="People and role cards" n="11">
+      <Section k="people" title="People and role cards" n="11">
         <div style={{ fontSize: 11.5, color: 'var(--muted)', marginBottom: 10 }}>
-          Individual cards are nested supporting context — subordinate to the organization.
+          Individual cards are nested supporting context — subordinate to the organization. No commercial or target data attaches to a person.
         </div>
         {roleCards.length > 0 && (
           <div className="home-list" style={{ marginBottom: 14 }}>
@@ -230,15 +276,15 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             })}
           </div>
         ) : <span className="card-section-empty">No nested individual cards published for this organization in the demo dataset.</span>}
-      </Panel>
+      </Section>
 
       {/* 12 · Risks and blockers */}
-      <Panel title="Risks and blockers" n="12">
-        {published.has('risks') && card ? <RiskList risks={card.risks} /> : <NotPublished />}
-      </Panel>
+      <Section k="risks" title="Risks and blockers" n="12">
+        {published.has('risks') && card ? <RiskList risks={card.risks} /> : <NotPublished k="risks" />}
+      </Section>
 
       {/* 13 · Freshness and governance */}
-      <Panel title="Freshness and governance" n="13">
+      <Section k="freshness" title="Freshness and governance" n="13">
         <div className="agree-grid">
           <div className="agree-block"><div className="agree-block-label">Card owner</div><div className="agree-block-body">{org.operatingOwner}</div></div>
           <div className="agree-block"><div className="agree-block-label">Freshness</div><div className="agree-block-body" style={{ display: 'flex', gap: 8, alignItems: 'center' }}><OrgFreshnessBadge state={org.freshness} /></div></div>
@@ -253,8 +299,8 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
             <Chips items={(['overview', 'how_succeeds', 'what_owns', 'what_needs', 'how_helps', 'dependencies', 'engagement', 'meeting_norms', 'handoff_rules', 'agreements', 'people', 'risks', 'freshness'] as const).filter((k) => !published.has(k)).map((k) => k.replace(/_/g, ' '))} />
           </div>
         )}
-        <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 12 }}>Audit trail · consent · retention — governed by the {org.orgPackId} pack (placeholder for Phase 2).</div>
-      </Panel>
+        <div style={{ fontSize: 11, color: 'var(--subtle)', marginTop: 12 }}>Audit trail · consent · retention — governed by the {org.orgPackId} pack (Phase 2 placeholder).</div>
+      </Section>
 
       {analysis && (analysis.topRisks.length > 0 || analysis.nextBestActions.length > 0) && (
         <div className="home-card" style={{ marginTop: 18 }}>

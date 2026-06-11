@@ -3,6 +3,7 @@ import type {
   OrgNeed, OrgOffer, SuccessAgreement, OrgMeeting, OrgMeetingFit,
   RoleCard, Person, WorkCard, CardAnswer, AgreementStatus, MeetingFitStatus,
   DependencyHealth, FreshnessState, OrgSuccessAnalysis, ReadinessLevel,
+  OrgCommercialProfile, RevenueRole, Currency, CommercialMetric,
 } from '../lib/types';
 import {
   levelColor, levelSoftBg, levelTextColor,
@@ -55,6 +56,69 @@ export function OrgPackBadge({ packId }: { packId: string }) {
   return <span className="badge-chip"><span className="bc-label">{pack?.name ?? packId}</span></span>;
 }
 
+/* ── Commercial profile display ───────────────────────────────── */
+const REVENUE_ROLE_META: Record<RevenueRole, { label: string; cls: string }> = {
+  pl_owner:            { label: 'P&L Owner',           cls: 'rev-pl' },
+  revenue_generating:  { label: 'Revenue Generating',  cls: 'rev-gen' },
+  revenue_influencing: { label: 'Revenue Influencing', cls: 'rev-infl' },
+  enablement:          { label: 'Enablement',          cls: 'rev-enb' },
+  shared_service:      { label: 'Shared Service',      cls: 'rev-shared' },
+  cost_center:         { label: 'Cost Center',         cls: 'rev-cost' },
+};
+
+export function RevenueRoleBadge({ role }: { role: RevenueRole }) {
+  const m = REVENUE_ROLE_META[role];
+  return <span className={`rev-badge ${m.cls}`}>{m.label}</span>;
+}
+
+const CURRENCY_SYMBOL: Record<Currency, string> = { USD: '$', EUR: '€', GBP: '£' };
+export function formatAmount(amount: number, currency: Currency): string {
+  const s = CURRENCY_SYMBOL[currency];
+  if (amount >= 1_000_000_000) return `${s}${(amount / 1_000_000_000).toFixed(amount % 1_000_000_000 === 0 ? 0 : 1)}B`;
+  if (amount >= 1_000_000) return `${s}${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (amount >= 1_000) return `${s}${(amount / 1_000).toFixed(amount % 1_000 === 0 ? 0 : 1)}K`;
+  return `${s}${amount}`;
+}
+
+const METRIC_LABEL: Record<CommercialMetric, string> = {
+  revenue: 'Revenue', bookings: 'Bookings', renewals: 'Renewals',
+  pipeline: 'Pipeline', nrr: 'NRR', cost_savings: 'Cost savings',
+};
+
+export function CommercialStrip({ profile }: { profile: OrgCommercialProfile }) {
+  return (
+    <div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap', marginBottom: 10 }}>
+        <RevenueRoleBadge role={profile.revenueRole} />
+        <span className="mono" style={{ fontSize: 10.5, color: 'var(--muted)' }}>{profile.fiscalYear}</span>
+        {typeof profile.headcount === 'number' && <span className="soft-chip">{profile.headcount} headcount</span>}
+        {profile.costCenterCode && <span className="soft-chip">CC {profile.costCenterCode}</span>}
+      </div>
+      {profile.targets.length > 0 && (
+        <div className="commercial-strip">
+          {profile.targets.map((t, i) => (
+            <div key={i} className="tgt-tile">
+              <div className="tgt-amount">{t.metric === 'nrr' ? `${t.amount}%` : formatAmount(t.amount, t.currency)}</div>
+              <div className="tgt-metric">{METRIC_LABEL[t.metric]}</div>
+              {typeof t.attainmentPct === 'number' && (
+                <div style={{ marginTop: 6 }}>
+                  <Bar value={t.attainmentPct} color={t.attainmentPct >= 90 ? 'var(--success)' : t.attainmentPct >= 70 ? 'var(--warning)' : 'var(--danger)'} height={4} />
+                  <div style={{ fontSize: 10, color: 'var(--muted)', marginTop: 3 }}>{t.attainmentPct}% attainment</div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      {profile.keyCommercialMetrics.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <Chips items={profile.keyCommercialMetrics} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function StrengthChip({ strength }: { strength: OrgDependency['strength'] }) {
   return <span className="mono strength-chip">{strength}</span>;
 }
@@ -63,12 +127,13 @@ export function StrengthChip({ strength }: { strength: OrgDependency['strength']
    Render primitives
    ═══════════════════════════════════════════════════════════════ */
 
-export function Panel({ title, n, children }: { title: string; n?: string; children: React.ReactNode }) {
+export function Panel({ title, n, action, children }: { title: string; n?: string; action?: React.ReactNode; children: React.ReactNode }) {
   return (
     <div className="org-panel">
       <div className="org-panel-head">
         {n && <span className="org-panel-n">{n}</span>}
         <span className="org-panel-title">{title}</span>
+        {action && <span style={{ marginLeft: 'auto' }}>{action}</span>}
       </div>
       <div className="org-panel-body">{children}</div>
     </div>

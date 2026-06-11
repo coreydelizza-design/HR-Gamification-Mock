@@ -594,6 +594,7 @@ button { font-family: inherit; }
   display: inline-flex; align-items: center;
 }
 .org-panel:hover .sec-pencil { opacity: 0.7; }
+.sec-pencil-on { opacity: 0.7; }
 .sec-pencil:hover { opacity: 1; color: var(--ink); background: var(--surface-soft); }
 
 /* Editor field primitives */
