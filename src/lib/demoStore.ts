@@ -5,6 +5,7 @@ import type {
 } from './types';
 import { ORGANIZATIONS } from '../data/organizations';
 import { ORG_CARDS } from '../data/orgCards';
+import { ORG_COMMERCIAL } from '../data/orgCommercial';
 import { ENTERPRISE } from '../data/enterprise';
 
 /**
@@ -54,11 +55,15 @@ function clone<T>(v: T): T {
 }
 
 function seedState(): DemoState {
+  // Attach commercial profiles (org-level only) onto the seed cards.
+  const orgCards = clone(ORG_CARDS).map((c) =>
+    ORG_COMMERCIAL[c.orgId] ? { ...c, commercial: clone(ORG_COMMERCIAL[c.orgId]) } : c,
+  );
   return {
     schemaVersion: SCHEMA_VERSION,
     enterpriseLabel: ENTERPRISE.name,
     organizations: clone(ORGANIZATIONS),
-    orgCards: clone(ORG_CARDS),
+    orgCards,
     modified: false,
   };
 }

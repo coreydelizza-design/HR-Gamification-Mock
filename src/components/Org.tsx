@@ -370,8 +370,8 @@ export function RoleCardPreview({ roleCard, person }: { roleCard: RoleCard; pers
    ═══════════════════════════════════════════════════════════════ */
 
 export function OrgCardPreview({
-  org, score, level, onOpen,
-}: { org: Organization; score?: number; level?: ReadinessLevel; onOpen: (id: string) => void }) {
+  org, score, level, revenueRole, onOpen,
+}: { org: Organization; score?: number; level?: ReadinessLevel; revenueRole?: RevenueRole; onOpen: (id: string) => void }) {
   return (
     <button className="org-preview" onClick={() => onOpen(org.id)}>
       <div className="org-preview-head">
@@ -381,6 +381,7 @@ export function OrgCardPreview({
         </div>
         <CategoryTag category={org.category} />
       </div>
+      {revenueRole && <div style={{ marginBottom: 10 }}><RevenueRoleBadge role={revenueRole} /></div>}
       <div className="org-preview-foot">
         <span className="mono org-preview-owner">{org.executiveOwner}</span>
         <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}>

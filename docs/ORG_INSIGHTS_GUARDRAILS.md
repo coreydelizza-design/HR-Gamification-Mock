@@ -52,3 +52,16 @@ meeting_fit_ready         Meeting Fit Ready
 ```
 
 Badge language is configured per pack (`OrgPack.badgeLanguage`), so the labels are white-labelable but the awarding subject (org/team) is fixed.
+
+## Commercial data (v3.5)
+
+Commercial structure (revenue role, targets, attainment, headcount, cost
+center) attaches to **organizations only**, via `OrganizationCard.commercial`.
+
+Forbidden, grep-verifiable: no target, quota, attainment, or revenue field on
+any `Person` / `RoleCard` / `IndividualWorkCard`. The "Commercial clarity" stat
+("your revenue engine's operating model is X% clear") is computed from
+**organization-level readiness** of revenue-responsible orgs (P&L owners +
+revenue-generating) — never from individual attainment. Attainment bars show an
+organization's target progress with no person attribution. The People & role
+cards section of any Organization Card explicitly carries no commercial data.

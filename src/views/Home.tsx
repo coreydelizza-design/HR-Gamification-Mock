@@ -51,6 +51,12 @@ export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onO
   const dependencyHealth = Math.round(depHealthy / ORG_DEPENDENCIES.length * 100);
   const freshCount = ORGANIZATIONS.filter((o) => o.freshness === 'fresh').length;
   const freshness = Math.round(freshCount / ORGANIZATIONS.length * 100);
+  const revenueResponsible = analyses.filter(({ org }) => {
+    const r = ORG_CARD_BY_ORG[org.id]?.commercial?.revenueRole;
+    return r === 'pl_owner' || r === 'revenue_generating';
+  });
+  const revClear = revenueResponsible.filter(({ a }) => a.successReadinessScore >= 80).length;
+  const revenueClarity = revenueResponsible.length ? Math.round(revClear / revenueResponsible.length * 100) : 0;
 
   const meters: Array<{ label: string; pct: number; rationale: string }> = [
     { label: 'Org-card coverage', pct: cardCoverage, rationale: 'Average of published sections across all 36 organizations.' },
@@ -59,6 +65,7 @@ export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onO
     { label: 'Handoff clarity', pct: handoffClarity, rationale: `${orgsWithHandoff} organizations have published handoff rules.` },
     { label: 'Dependency health', pct: dependencyHealth, rationale: `${depHealthy} of ${ORG_DEPENDENCIES.length} dependencies healthy.` },
     { label: 'Freshness', pct: freshness, rationale: `${freshCount} of ${ORGANIZATIONS.length} cards reviewed recently.` },
+    { label: 'Revenue-engine clarity', pct: revenueClarity, rationale: `${revClear} of ${revenueResponsible.length} revenue-responsible orgs are at ready threshold.` },
   ];
 
   const needingAttention = [...analyses]

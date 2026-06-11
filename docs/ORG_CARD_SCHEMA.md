@@ -39,3 +39,22 @@ The catalog is searchable (by name) and filterable (by category and readiness). 
 `OrganizationCard.publishedSections: OrgCardSectionKey[]` lists which of the 13 keys actually have content. A section absent from `publishedSections` renders as an honest "not yet published" placeholder, not as fabricated content. Tier-2 cards publish fewer sections — honest about depth, structurally identical to Tier 1.
 
 Content style: specific, operational, no fluff (e.g. Enterprise Architecture: "architecture patterns are adopted before delivery starts"; Legal: "accelerating reviews when intake is complete").
+
+## Commercial profile (v3.5)
+
+`OrganizationCard.commercial?: OrgCommercialProfile` carries the organization's
+commercial structure. **It is ORGANIZATION-LEVEL ONLY.**
+
+Fields: `revenueRole` (pl_owner | revenue_generating | revenue_influencing |
+enablement | shared_service | cost_center), `fiscalYear`, `targets[]`
+({metric, amount, currency, attainmentPct?} — metric ∈ revenue | bookings |
+renewals | pipeline | nrr | cost_savings), `budgetOwnerPersonId?` (a budget
+owner reference, never a target owner), `headcount?`, `costCenterCode?`,
+`keyCommercialMetrics[]` (metric *names*, not per-person numbers).
+
+LOCK: there are **no** targets, quotas, attainment, or revenue metrics on any
+`Person`, `RoleCard`, or `IndividualWorkCard` type — by design and by data
+shape. Attainment displays carry no person linkage. Commercial fields feed only
+organization-level rollups (catalog filter, Org Insights "Commercial clarity",
+Home "Revenue-engine clarity"), each with a visible rationale. See
+docs/ORG_INSIGHTS_GUARDRAILS.md.

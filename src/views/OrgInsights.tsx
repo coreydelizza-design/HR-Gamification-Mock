@@ -32,6 +32,15 @@ export default function OrgInsights({ onOpenOrg }: Props) {
     { label: 'Meetings not ready', value: `${meetingsNotReady}`, detail: `of ${ORG_MEETING_FITS.length} cross-org meetings` },
   ];
 
+  // Commercial clarity — the revenue engine's operating-model clarity.
+  const revenueResponsible = analyses.filter(({ org }) => {
+    const r = ORG_CARD_BY_ORG[org.id]?.commercial?.revenueRole;
+    return r === 'pl_owner' || r === 'revenue_generating';
+  });
+  const revClear = revenueResponsible.filter(({ a }) => a.successReadinessScore >= 80).length;
+  const revClarityPct = revenueResponsible.length ? Math.round(revClear / revenueResponsible.length * 100) : 0;
+  const revNeedsWork = revenueResponsible.filter(({ org, a }) => org.freshness === 'stale' || a.successReadinessScore < 70);
+
   const dimPct = (a: ReturnType<typeof successFor>, key: string) => a?.dimensions.find((d) => d.key === key)?.summary.pct ?? 100;
   const unclearOwnership = analyses.filter(({ a }) => dimPct(a, 'ownership') < 60);
   const staleCards = analyses.filter(({ org }) => org.freshness === 'stale');
@@ -93,6 +102,36 @@ export default function OrgInsights({ onOpenOrg }: Props) {
           <span><span className="legend-dot" style={{ background: 'var(--warning)' }} />{freshMix.aging} aging</span>
           <span><span className="legend-dot" style={{ background: 'var(--danger)' }} />{freshMix.stale} stale</span>
         </div>
+      </div>
+
+      <div className="home-card" style={{ marginBottom: 18 }}>
+        <div className="home-card-head">
+          <div className="home-card-title">Commercial clarity</div>
+          <span className="home-card-meta">revenue engine</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 4 }}>
+          <span style={{ fontFamily: "'Fraunces', serif", fontSize: 32, fontWeight: 500 }}>{revClarityPct}%</span>
+          <span style={{ fontSize: 12.5, color: 'var(--muted)' }}>
+            Your revenue engine's operating model is <strong>{revClarityPct}%</strong> clear —
+            {revClear} of {revenueResponsible.length} revenue-responsible organizations (P&amp;L owners and revenue-generating)
+            have a card at ready threshold.
+          </span>
+        </div>
+        {revNeedsWork.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <div className="lbl-list-label">Revenue-responsible orgs with stale or low-clarity cards</div>
+            <div className="home-list">
+              {revNeedsWork.map(({ org, a }) => (
+                <div key={org.id} className="home-list-item" style={{ gridTemplateColumns: '1fr auto auto', cursor: 'pointer' }} onClick={() => onOpenOrg(org.id)}>
+                  <div><div className="hli-title">{org.name}</div><div className="hli-sub">{ORG_CARD_BY_ORG[org.id]?.commercial?.revenueRole.replace('_', ' ')}</div></div>
+                  <span className="freshness fr-unknown" style={{ alignSelf: 'center' }}>{org.freshness}</span>
+                  <span className="hli-action">{a.successReadinessScore}% →</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <div style={{ fontSize: 10.5, color: 'var(--subtle)', marginTop: 10 }}>Computed from organization-level readiness only. No individual attainment, quota, or revenue is attributed to any person.</div>
       </div>
 
       <div className="home-grid">

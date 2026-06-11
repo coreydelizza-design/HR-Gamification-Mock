@@ -18,7 +18,7 @@ import {
   CategoryTag, OrgFreshnessBadge, OrgPackBadge, DimensionGrid, CommercialStrip,
   SuccessAgreementCard,
 } from '../components/Org';
-import { SectionEditor, isSectionEditable } from '../components/CardEditors';
+import { SectionEditor, CommercialEditor, isSectionEditable } from '../components/CardEditors';
 
 interface Props {
   orgId: string | null;
@@ -48,6 +48,7 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
   const { orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
   const [editMode, setEditMode] = useState(false);
   const [editingSection, setEditingSection] = useState<OrgCardSectionKey | null>(null);
+  const [editingCommercial, setEditingCommercial] = useState(false);
 
   const org = orgId ? ORG_BY_ID[orgId] : undefined;
   if (!org) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Organization not found. <button className="detail-back" onClick={onBack}>Back</button></div>;
@@ -132,12 +133,21 @@ export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpe
           <div className="agree-block"><div className="agree-block-label">Category · members</div><div className="agree-block-body">{ORG_CATEGORY_LABEL[org.category]} · {org.memberCount} people</div></div>
           <div className="agree-block"><div className="agree-block-label">Key partner orgs</div><div className="agree-block-body">{org.partnerOrgIds.length ? org.partnerOrgIds.map(orgName).join(', ') : '—'}</div></div>
         </div>
-        {card?.commercial && (
+        {card && (editingCommercial ? (
           <div style={{ marginTop: 14 }}>
-            <div className="lbl-list-label">Commercial profile</div>
-            <CommercialStrip profile={card.commercial} />
+            <CommercialEditor org={org} card={card} onDone={() => setEditingCommercial(false)} />
           </div>
-        )}
+        ) : (
+          <div style={{ marginTop: 14 }}>
+            <div className="lbl-list-label" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              Commercial profile <span style={{ fontSize: 9, color: 'var(--subtle)' }}>organization-level only</span>
+              <button className={`sec-pencil ${editMode ? 'sec-pencil-on' : ''}`} title="Edit commercial profile" onClick={() => setEditingCommercial(true)} style={{ marginLeft: 'auto' }}><IconEdit size={13} /></button>
+            </div>
+            {card.commercial
+              ? <CommercialStrip profile={card.commercial} />
+              : <div className="card-section-empty" style={{ display: 'flex', gap: 10, alignItems: 'center' }}>No commercial profile yet. <button className="btn-ghost btn-sm" onClick={() => setEditingCommercial(true)}>+ Add it</button></div>}
+          </div>
+        ))}
         {analysis && (
           <div style={{ marginTop: 14 }}>
             <div className="lbl-list-label">Success readiness — {analysis.dimensions.length} explainable dimensions</div>

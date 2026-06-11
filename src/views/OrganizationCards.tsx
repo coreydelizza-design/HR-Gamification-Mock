@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import type { Organization, OrganizationCategory } from '../lib/types';
+import type { Organization, OrganizationCategory, RevenueRole } from '../lib/types';
 import { ORG_CATEGORY_LABEL } from '../data/organizations';
 import { useOrgData } from '../lib/demoStore';
 import { successFor } from '../lib/orgData';
@@ -11,22 +11,29 @@ interface Props {
 
 type ReadinessFilter = 'all' | 'ready' | 'attention' | 'stale';
 const CATEGORIES: Array<OrganizationCategory | 'all'> = ['all', 'leadership', 'technology', 'revenue', 'customer', 'people', 'finance_legal', 'operations'];
+const REVENUE_ROLES: Array<[RevenueRole | 'all', string]> = [
+  ['all', 'All revenue roles'], ['pl_owner', 'P&L Owner'], ['revenue_generating', 'Revenue Generating'],
+  ['revenue_influencing', 'Revenue Influencing'], ['enablement', 'Enablement'],
+  ['shared_service', 'Shared Service'], ['cost_center', 'Cost Center'],
+];
 
 export default function OrganizationCards({ onOpenOrg }: Props) {
-  const { organizations: ORGANIZATIONS } = useOrgData();
+  const { organizations: ORGANIZATIONS, orgCardByOrg } = useOrgData();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<OrganizationCategory | 'all'>('all');
   const [readiness, setReadiness] = useState<ReadinessFilter>('all');
   const [tier, setTier] = useState<'all' | 1 | 2>('all');
+  const [revRole, setRevRole] = useState<RevenueRole | 'all'>('all');
 
   const scored = useMemo(() => ORGANIZATIONS.map((o) => {
     const a = successFor(o.id);
-    return { org: o, score: a?.successReadinessScore ?? 0, level: a?.level ?? 'unknown' as const };
-  }), [ORGANIZATIONS]);
+    return { org: o, score: a?.successReadinessScore ?? 0, level: a?.level ?? 'unknown' as const, revenueRole: orgCardByOrg[o.id]?.commercial?.revenueRole };
+  }), [ORGANIZATIONS, orgCardByOrg]);
 
-  const filtered = useMemo(() => scored.filter(({ org, score }) => {
+  const filtered = useMemo(() => scored.filter(({ org, score, revenueRole }) => {
     if (category !== 'all' && org.category !== category) return false;
     if (tier !== 'all' && org.tier !== tier) return false;
+    if (revRole !== 'all' && revenueRole !== revRole) return false;
     if (readiness === 'ready' && score < 80) return false;
     if (readiness === 'attention' && score >= 55) return false;
     if (readiness === 'stale' && org.freshness !== 'stale') return false;
@@ -35,7 +42,7 @@ export default function OrganizationCards({ onOpenOrg }: Props) {
       if (!org.name.toLowerCase().includes(q) && !org.mission.toLowerCase().includes(q) && !org.executiveOwner.toLowerCase().includes(q)) return false;
     }
     return true;
-  }), [scored, category, tier, readiness, query]);
+  }), [scored, category, tier, readiness, query, revRole]);
 
   const tier1 = filtered.filter((x) => x.org.tier === 1);
   const tier2 = filtered.filter((x) => x.org.tier === 2);
@@ -47,8 +54,8 @@ export default function OrganizationCards({ onOpenOrg }: Props) {
         <span className="section-meta">{items.length} organization{items.length === 1 ? '' : 's'}</span>
       </div>
       <div className="org-grid">
-        {items.map(({ org, score, level }) => (
-          <OrgCardPreview key={org.id} org={org} score={score} level={level} onOpen={onOpenOrg} />
+        {items.map(({ org, score, level, revenueRole }) => (
+          <OrgCardPreview key={org.id} org={org} score={score} level={level} revenueRole={revenueRole} onOpen={onOpenOrg} />
         ))}
       </div>
     </div>
@@ -89,6 +96,11 @@ export default function OrganizationCards({ onOpenOrg }: Props) {
         ))}
         {([['all', 'All tiers'], [1, 'Tier 1 · rich'], [2, 'Tier 2 · catalog']] as Array<['all' | 1 | 2, string]>).map(([k, label]) => (
           <button key={String(k)} className={`filter-chip ${tier === k ? 'active' : ''}`} onClick={() => setTier(k)}>{label}</button>
+        ))}
+      </div>
+      <div className="filter-row">
+        {REVENUE_ROLES.map(([k, label]) => (
+          <button key={k} className={`filter-chip ${revRole === k ? 'active' : ''}`} onClick={() => setRevRole(k)}>{label}</button>
         ))}
       </div>
 

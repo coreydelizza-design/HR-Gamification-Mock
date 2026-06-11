@@ -2,9 +2,10 @@ import { useState } from 'react';
 import type {
   Organization, OrganizationCard, OrgCardSectionKey, OrgMetric, RequiredInput,
   OrgRisk, HandoffRule, EngagementModel, OrgMeetingNorms,
+  OrgCommercialProfile, CommercialTarget, CommercialMetric, Currency, RevenueRole,
 } from '../lib/types';
 import {
-  updateOrgCardSection, updateOrganization, useOrgData,
+  updateOrgCardSection, updateOrganization, updateCommercialProfile, useOrgData,
 } from '../lib/demoStore';
 import { ORG_PACKS } from '../data/orgPacks';
 import { PEOPLE } from '../data/people';
@@ -261,6 +262,75 @@ function renderField(s: FieldSpec, value: unknown, onChange: (v: unknown) => voi
     default:
       return null;
   }
+}
+
+/* ── commercial profile editor ────────────────────────────────── */
+const REVENUE_ROLE_OPTS: Array<{ value: RevenueRole; label: string }> = [
+  { value: 'pl_owner', label: 'P&L Owner' },
+  { value: 'revenue_generating', label: 'Revenue Generating' },
+  { value: 'revenue_influencing', label: 'Revenue Influencing' },
+  { value: 'enablement', label: 'Enablement' },
+  { value: 'shared_service', label: 'Shared Service' },
+  { value: 'cost_center', label: 'Cost Center' },
+];
+const METRIC_OPTS: Array<{ value: CommercialMetric; label: string }> = [
+  { value: 'revenue', label: 'Revenue' }, { value: 'bookings', label: 'Bookings' },
+  { value: 'renewals', label: 'Renewals' }, { value: 'pipeline', label: 'Pipeline' },
+  { value: 'nrr', label: 'NRR' }, { value: 'cost_savings', label: 'Cost savings' },
+];
+const CURRENCY_OPTS: Array<{ value: Currency; label: string }> = [
+  { value: 'USD', label: 'USD' }, { value: 'EUR', label: 'EUR' }, { value: 'GBP', label: 'GBP' },
+];
+
+export function CommercialEditor({ org, card, onDone }: { org: Organization; card: OrganizationCard; onDone: () => void }) {
+  const c = card.commercial;
+  const [revenueRole, setRevenueRole] = useState<RevenueRole>(c?.revenueRole ?? 'enablement');
+  const [fiscalYear, setFiscalYear] = useState(c?.fiscalYear ?? 'FY2026');
+  const [headcount, setHeadcount] = useState<number | undefined>(c?.headcount);
+  const [costCenterCode, setCostCenterCode] = useState(c?.costCenterCode ?? '');
+  const [keyMetrics, setKeyMetrics] = useState<string[]>(c?.keyCommercialMetrics ?? []);
+  const [targets, setTargets] = useState<CommercialTarget[]>(c?.targets ?? []);
+
+  const setTarget = (i: number, patch: Partial<CommercialTarget>) =>
+    setTargets((ts) => ts.map((t, j) => j === i ? { ...t, ...patch } : t));
+
+  const save = () => {
+    const profile: OrgCommercialProfile = {
+      revenueRole, fiscalYear,
+      targets, keyCommercialMetrics: keyMetrics,
+      headcount, costCenterCode: costCenterCode || undefined,
+      budgetOwnerPersonId: c?.budgetOwnerPersonId,
+    };
+    updateCommercialProfile(org.id, profile);
+    onDone();
+  };
+
+  return (
+    <SectionEditFrame title="Commercial profile — organization-level only" onSave={save} onCancel={onDone}>
+      <div className="fld-grid">
+        <Field label="Revenue role"><EnumSelect value={revenueRole} onChange={setRevenueRole} options={REVENUE_ROLE_OPTS} /></Field>
+        <Field label="Fiscal year"><TextField value={fiscalYear} onChange={setFiscalYear} /></Field>
+        <Field label="Headcount"><NumberField value={headcount} onChange={setHeadcount} /></Field>
+        <Field label="Cost center code"><TextField value={costCenterCode} onChange={setCostCenterCode} /></Field>
+      </div>
+      <Field label="Key commercial metrics" hint="e.g. Win rate, Avg deal cycle, Churn % — org-level metric names, not individual numbers">
+        <ChipInput value={keyMetrics} onChange={setKeyMetrics} />
+      </Field>
+      <div className="fld">
+        <label className="fld-label">Targets (organization-level)</label>
+        {targets.map((t, i) => (
+          <div key={i} style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr 0.8fr 1fr auto', gap: 8, marginBottom: 8, alignItems: 'center' }}>
+            <EnumSelect value={t.metric} onChange={(v) => setTarget(i, { metric: v })} options={METRIC_OPTS} />
+            <NumberField value={t.amount} onChange={(v) => setTarget(i, { amount: v ?? 0 })} placeholder="Amount" />
+            <EnumSelect value={t.currency} onChange={(v) => setTarget(i, { currency: v })} options={CURRENCY_OPTS} />
+            <NumberField value={t.attainmentPct} onChange={(v) => setTarget(i, { attainmentPct: v })} placeholder="% attain" />
+            <button type="button" className="chip-x" title="Remove target" onClick={() => setTargets((ts) => ts.filter((_, j) => j !== i))}>×</button>
+          </div>
+        ))}
+        <button type="button" className="btn-ghost btn-sm" onClick={() => setTargets((ts) => [...ts, { metric: 'revenue', amount: 0, currency: 'USD' }])}>+ Add target</button>
+      </div>
+    </SectionEditFrame>
+  );
 }
 
 /* ── handoff rules editor (first rule) ────────────────────────── */
