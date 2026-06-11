@@ -1,28 +1,28 @@
 import type { Person, ViewKey } from '../lib/types';
 import {
-  IconDash, IconUser, IconUsers, IconCal, IconCheck, IconChart, IconSettings,
+  IconDash, IconBuilding, IconNetwork, IconCheck, IconCal, IconChart, IconSettings,
 } from './Icons';
 
 interface NavEntry {
   key: ViewKey;
   label: string;
   Icon: React.FC<{ size?: number; className?: string }>;
-  section: 'you' | 'org';
+  section: 'work' | 'org';
 }
 
 const NAV: NavEntry[] = [
-  { key: 'home',       label: 'Home',                Icon: IconDash,     section: 'you' },
-  { key: 'mycard',     label: 'My Fieldguide',       Icon: IconUser,     section: 'you' },
-  { key: 'people',     label: 'People & Teams',      Icon: IconUsers,    section: 'you' },
-  { key: 'meetings',   label: 'Meetings',            Icon: IconCal,      section: 'you' },
-  { key: 'agreements', label: 'Working Agreements',  Icon: IconCheck,    section: 'you' },
-  { key: 'insights',   label: 'Org Insights',        Icon: IconChart,    section: 'org' },
-  { key: 'admin',      label: 'Admin',               Icon: IconSettings, section: 'org' },
+  { key: 'home',                label: 'Home',                Icon: IconDash,     section: 'work' },
+  { key: 'organizations',       label: 'Organization Cards',  Icon: IconBuilding, section: 'work' },
+  { key: 'collaboration-map',   label: 'Collaboration Map',   Icon: IconNetwork,  section: 'work' },
+  { key: 'success-agreements',  label: 'Success Agreements',  Icon: IconCheck,    section: 'work' },
+  { key: 'meeting-fit',         label: 'Meeting Fit',         Icon: IconCal,      section: 'work' },
+  { key: 'org-insights',        label: 'Org Insights',        Icon: IconChart,    section: 'org'  },
+  { key: 'admin',               label: 'Admin',               Icon: IconSettings, section: 'org'  },
 ];
 
 const SECTION_LABELS: Record<NavEntry['section'], string> = {
-  you: 'Workspace',
-  org: 'Organization',
+  work: 'Collaboration',
+  org: 'Enterprise',
 };
 
 interface Props {
@@ -33,14 +33,13 @@ interface Props {
 
 // Map detail views back to their parent nav key so the sidebar stays highlighted.
 const PARENT_OF: Partial<Record<ViewKey, ViewKey>> = {
-  person: 'people',
-  team: 'people',
-  meeting: 'meetings',
-  agreement: 'agreements',
+  'organization-detail': 'organizations',
+  'success-agreement-detail': 'success-agreements',
+  'meeting-fit-detail': 'meeting-fit',
 };
 
 export default function Sidebar({ view, user, onNavigate }: Props) {
-  const sections: NavEntry['section'][] = ['you', 'org'];
+  const sections: NavEntry['section'][] = ['work', 'org'];
   const activeKey: ViewKey = PARENT_OF[view] ?? view;
 
   return (
@@ -49,7 +48,7 @@ export default function Sidebar({ view, user, onNavigate }: Props) {
         <span className="brand-mark">F</span>
         <div>
           <div className="brand-name">Fieldguide</div>
-          <div className="brand-tag">Collaboration intelligence</div>
+          <div className="brand-tag">Collaboration readiness</div>
         </div>
       </div>
 
@@ -73,19 +72,27 @@ export default function Sidebar({ view, user, onNavigate }: Props) {
         </div>
       ))}
 
-      <div className="sidebar-foot">
-        <div
-          className="av"
-          style={{
-            width: 32, height: 32, fontSize: 12,
-            background: 'var(--accent-1-soft)', color: 'var(--accent-1-text)',
-          }}
-        >
-          {user.initials}
+      <div className="sidebar-foot" style={{ flexDirection: 'column', alignItems: 'stretch', gap: 12 }}>
+        <div style={{
+          fontSize: 10.5, color: 'var(--muted)', lineHeight: 1.5,
+          fontStyle: 'italic', paddingBottom: 12, borderBottom: '1px solid var(--rule)',
+        }}>
+          Working structure, not reporting structure.
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="sidebar-foot-name">{user.name}</div>
-          <div className="sidebar-foot-role">{user.role}</div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div
+            className="av"
+            style={{
+              width: 32, height: 32, fontSize: 12,
+              background: 'var(--accent-1-soft)', color: 'var(--accent-1-text)',
+            }}
+          >
+            {user.initials}
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div className="sidebar-foot-name">{user.name}</div>
+            <div className="sidebar-foot-role">{user.role}</div>
+          </div>
         </div>
       </div>
     </aside>

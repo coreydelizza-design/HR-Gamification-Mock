@@ -15,16 +15,15 @@
    ───────────────────────────────────────────────────────────────── */
 export type ViewKey =
   | 'home'
-  | 'mycard'
-  | 'people'
-  | 'meetings'
-  | 'agreements'
-  | 'insights'
-  | 'admin'
-  | 'person'      // detail (opened from People & Teams)
-  | 'team'        // detail (opened from People & Teams)
-  | 'meeting'     // detail (opened from Meetings list)
-  | 'agreement';  // detail (opened from Working Agreements)
+  | 'organizations'
+  | 'organization-detail'        // org card detail (PARENT_OF organizations)
+  | 'collaboration-map'
+  | 'success-agreements'
+  | 'success-agreement-detail'   // PARENT_OF success-agreements
+  | 'meeting-fit'
+  | 'meeting-fit-detail'         // PARENT_OF meeting-fit
+  | 'org-insights'
+  | 'admin';
 
 
 /* ─────────────────────────────────────────────────────────────────
