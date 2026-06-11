@@ -238,7 +238,7 @@ export const COLLAB_EDGES: CollabEdge[] = [
     strength: 'strong',
     health: 'at_risk',
     requiredInput: 'Hiring plans and org headcount requests from People Operations.',
-    outputProvided: 'Approved headcount, comp band envelopes, and budget reforecast timing.',
+    outputProvided: 'Approved headcount, total-rewards budget envelopes, and budget reforecast timing.',
     risk: 'Late budget reforecasts leave hiring plans uncertain and slow time-to-offer.',
     governingAgreementId: 'sa-hr-fin',
   },

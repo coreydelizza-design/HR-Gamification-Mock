@@ -1,228 +1,156 @@
 import { useState } from 'react';
-import { ENTERPRISE, ORGANIZATION, ORG_PACKS, ACTIVE_ORG_PACK } from '../data/enterprise';
-import { CARD_SECTIONS } from '../data/cardSections';
-import {
-  INTEGRATIONS, TEAM_TEMPLATES, NUDGE_CADENCES, RETENTION_OPTIONS,
-  CONSENT_RECORDS, AUDIT_LOGS,
-} from '../data/admin';
-import { BADGE_CATALOG } from '../data/badges';
-import { PERSON_BY_ID } from '../data/people';
+import { ENTERPRISE } from '../data/enterprise';
+import { ORGANIZATIONS } from '../data/organizations';
+import { ORG_PACKS } from '../data/orgPacks';
+
+const ORG_CARD_SECTIONS = [
+  'Overview', 'How this organization succeeds', 'What this organization owns',
+  'What it needs from others', 'How it helps others succeed', 'Cross-org dependencies',
+  'Engagement model', 'Meeting norms', 'Handoff rules', 'Success agreements',
+  'People and role cards', 'Risks and blockers', 'Freshness and governance',
+];
+
+const INTEGRATIONS: Array<{ name: string; status: 'connected' | 'available' | 'coming' }> = [
+  { name: 'HRIS (Workday)', status: 'available' },
+  { name: 'Microsoft Teams', status: 'connected' },
+  { name: 'Slack', status: 'connected' },
+  { name: 'Outlook', status: 'available' },
+  { name: 'Google Calendar', status: 'available' },
+  { name: 'ServiceNow', status: 'coming' },
+  { name: 'Jira', status: 'available' },
+  { name: 'Asana', status: 'coming' },
+  { name: 'Monday', status: 'coming' },
+  { name: 'Salesforce', status: 'connected' },
+  { name: 'Power BI', status: 'coming' },
+];
+
+const VISIBILITY_SCOPES = [
+  { scope: 'Organization-visible', detail: 'Default. Any employee can read the organization card.' },
+  { scope: 'Partner-visible', detail: 'Card visible to named partner organizations only.' },
+  { scope: 'Manager-visible', detail: 'Nested individual context visible to the person’s manager.' },
+  { scope: 'Private individual context', detail: 'Focus, feedback, and personal notes stay with the individual.' },
+];
+
+type Tab = 'enterprise' | 'catalog' | 'templates' | 'packs' | 'governance' | 'integrations';
 
 export default function Admin() {
-  const [packId, setPackId] = useState<string>(ACTIVE_ORG_PACK.id);
-  const pack = ORG_PACKS.find((p) => p.id === packId) ?? ACTIVE_ORG_PACK;
+  const [tab, setTab] = useState<Tab>('enterprise');
 
   return (
     <>
-      <div style={{ marginBottom: 18 }}>
-        <div className="display" style={{ fontSize: 24 }}>Admin</div>
-        <div style={{ fontSize: 12.5, color: 'var(--muted)', marginTop: 4 }}>
-          Enterprise and organization configuration. Changes here apply org-wide.
-        </div>
+      <div className="section-head" style={{ marginBottom: 12 }}>
+        <span className="display" style={{ fontSize: 24 }}>Admin</span>
+        <span className="section-meta">{ENTERPRISE.name} · demo-static configuration</span>
       </div>
 
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Organization</span>
-          <span className="section-meta">{ENTERPRISE.name}</span>
-        </div>
-        <div className="card" style={{ padding: 18 }}>
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Organization name</div>
-              <div className="admin-row-desc">The org displayed in the top-bar crumb and on every card.</div>
-            </div>
-            <div className="admin-row-value">{ORGANIZATION.name}</div>
-          </div>
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Region</div>
-              <div className="admin-row-desc">Primary region for data residency.</div>
-            </div>
-            <div className="admin-row-value">{ENTERPRISE.region}</div>
-          </div>
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Industry / size</div>
-              <div className="admin-row-desc">Used to recommend default Org Packs.</div>
-            </div>
-            <div className="admin-row-value">{ORGANIZATION.industry} · {ORGANIZATION.size}</div>
-          </div>
-        </div>
+      <div className="tab-strip">
+        {([['enterprise', 'Enterprise'], ['catalog', 'Org Catalog'], ['templates', 'Card Templates'], ['packs', 'Org Packs'], ['governance', 'Visibility & Governance'], ['integrations', 'Integrations']] as Array<[Tab, string]>).map(([k, label]) => (
+          <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>{label}</button>
+        ))}
       </div>
 
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Org Pack</span>
-          <span className="section-meta">Required sections · meeting-fit rules · visibility defaults · badge language · nudge cadence · retention</span>
+      {tab === 'enterprise' && (
+        <div className="card" style={{ padding: '4px 22px' }}>
+          {[
+            ['Enterprise name', ENTERPRISE.name, 'White-label display name across the product.'],
+            ['Primary domain', ENTERPRISE.primaryDomain, 'Used for SSO and email matching.'],
+            ['Region', ENTERPRISE.region, 'Data residency and default locale.'],
+            ['Default card template', 'Full 13-section organization card', 'Applied to new organizations.'],
+            ['Freshness cadence', 'Review every 90 days', 'Cards aging past cadence are flagged.'],
+            ['Default visibility', 'Organization-visible', 'Default scope for new cards.'],
+            ['Review cadence', 'Quarterly operating review', 'When org cards are revisited enterprise-wide.'],
+          ].map(([label, value, desc]) => (
+            <div className="admin-row" key={label}>
+              <div><div className="admin-row-label">{label}</div><div className="admin-row-desc">{desc}</div></div>
+              <div className="admin-row-value">{value}</div>
+            </div>
+          ))}
         </div>
-        <div className="card" style={{ padding: 18 }}>
-          <div style={{ display: 'flex', gap: 8, marginBottom: 18, flexWrap: 'wrap' }}>
-            {ORG_PACKS.map((p) => (
-              <button
-                key={p.id}
-                className={`filter-chip ${packId === p.id ? 'active' : ''}`}
-                onClick={() => setPackId(p.id)}
-              >{p.name}</button>
+      )}
+
+      {tab === 'catalog' && (
+        <>
+          <div className="section-desc">Create, parent, assign owners and packs, and activate organizations. Demo-static — the UI is present; edits are not persisted.</div>
+          <div className="card" style={{ padding: '4px 22px' }}>
+            {ORGANIZATIONS.slice(0, 14).map((o) => (
+              <div className="admin-row" key={o.id} style={{ gridTemplateColumns: '1fr 200px' }}>
+                <div><div className="admin-row-label">{o.name}</div><div className="admin-row-desc">Tier {o.tier} · {o.executiveOwner}{o.parentOrgId ? ` · parent: ${o.parentOrgId}` : ''}</div></div>
+                <div className="admin-row-value">{o.orgPackId}</div>
+              </div>
+            ))}
+            <div className="admin-row"><div className="admin-row-desc">…and {ORGANIZATIONS.length - 14} more organizations in the catalog.</div><div /></div>
+          </div>
+        </>
+      )}
+
+      {tab === 'templates' && (
+        <>
+          <div className="section-desc">The default organization card template. Packs mark which sections are required vs. optional.</div>
+          <div className="card" style={{ padding: '4px 22px' }}>
+            {ORG_CARD_SECTIONS.map((s, i) => (
+              <div className="admin-row" key={s} style={{ gridTemplateColumns: '1fr 120px' }}>
+                <div><div className="admin-row-label">{String(i + 1).padStart(2, '0')} · {s}</div></div>
+                <div className="admin-row-value">{i < 5 || i === 6 ? 'required' : 'optional'}</div>
+              </div>
             ))}
           </div>
-          <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.65, marginBottom: 16 }}>
-            {pack.description}
-          </div>
+        </>
+      )}
 
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Required card sections</div>
-              <div className="admin-row-desc">Cards must have these sections answered to publish.</div>
-            </div>
-            <div className="admin-row-value">
-              {pack.requiredCardSections.map((k) => CARD_SECTIONS.find((s) => s.key === k)?.label ?? k).join(' · ')}
-            </div>
-          </div>
-
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Visibility default</div>
-              <div className="admin-row-desc">Where new cards are visible unless an individual changes it.</div>
-            </div>
-            <div className="admin-row-value">{pack.visibilityDefault}</div>
-          </div>
-
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Nudge cadence</div>
-              <div className="admin-row-desc">How often the system reminds people to refresh their cards.</div>
-            </div>
-            <div className="admin-row-value">{pack.nudgeCadenceDays} days · {NUDGE_CADENCES.find((c) => c.days === pack.nudgeCadenceDays)?.label ?? 'custom'}</div>
-          </div>
-
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Data retention</div>
-              <div className="admin-row-desc">Default lifetime of audit logs and superseded card versions.</div>
-            </div>
-            <div className="admin-row-value">{pack.dataRetentionDays} days · {RETENTION_OPTIONS.find((r) => r.days === pack.dataRetentionDays)?.label ?? 'custom'}</div>
-          </div>
-
-          <div className="admin-row">
-            <div>
-              <div className="admin-row-label">Meeting fit rules</div>
-              <div className="admin-row-desc">Rules used to compute meeting readiness. Each rule is advisory.</div>
-            </div>
-            <div className="admin-row-value" style={{ lineHeight: 1.7 }}>
-              {pack.meetingFitRules.map((r) => r.label).join(' · ')}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Team templates</span>
-          <span className="section-meta">{TEAM_TEMPLATES.length} templates</span>
-        </div>
-        <div className="card">
-          {TEAM_TEMPLATES.map((t) => (
-            <div key={t.id} className="coverage-row">
-              <div className="coverage-row-label">{t.label}</div>
-              <div className="coverage-row-detail">{t.description}</div>
-              <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--muted)', textAlign: 'right' }}>
-                {t.defaultSections.length} sections
+      {tab === 'packs' && (
+        <>
+          <div className="section-desc">Eleven function-specific packs. Each defines required sections, intake fields, handoff and decision-rights templates, success metrics, freshness cadence, badge language, and nudge cadence.</div>
+          <div className="org-grid">
+            {ORG_PACKS.map((p) => (
+              <div key={p.id} className="org-preview" style={{ cursor: 'default' }}>
+                <div className="org-preview-head"><div className="org-preview-name">{p.name}</div></div>
+                <div className="org-preview-mission">{p.description}</div>
+                <div style={{ marginTop: 10, fontSize: 11, color: 'var(--muted)' }}>
+                  <div>Required sections: {p.requiredCardSections.length}</div>
+                  <div>Intake fields: {p.intakeFields?.length ?? 0}</div>
+                  <div>Freshness: every {p.freshnessCadenceDays ?? 90}d · nudge every {p.nudgeCadenceDays}d</div>
+                </div>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <span className="admin-status admin-status-available">template</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Badge language</span>
-          <span className="section-meta">Always tied to readiness, freshness, or collaboration hygiene</span>
-        </div>
-        <div className="section-desc">
-          Fieldguide deliberately constrains its recognition vocabulary. Every badge below rewards clarity or hygiene; none reward personality, ranking, or perceived performance.
-        </div>
-        <div className="card" style={{ padding: '6px 18px' }}>
-          {(Object.keys(BADGE_CATALOG) as Array<keyof typeof BADGE_CATALOG>).map((key) => {
-            const b = BADGE_CATALOG[key];
-            return (
-              <div key={key} style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--rule-soft)' }}>
-                <div style={{ fontSize: 13, fontWeight: 500 }}>{b.label}</div>
-                <div style={{ fontSize: 12.5, color: 'var(--muted)', lineHeight: 1.55 }}>{b.description}</div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Integrations</span>
-          <span className="section-meta">Identity · calendar · messaging · HRIS · docs · video</span>
-        </div>
-        <div className="card">
-          {INTEGRATIONS.map((i) => (
-            <div key={i.id} className="coverage-row">
-              <div className="coverage-row-label">{i.name}</div>
-              <div className="coverage-row-detail">{i.description}</div>
-              <div style={{ fontSize: 10.5, color: 'var(--muted)', fontFamily: "'JetBrains Mono', monospace", textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                {i.category}
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <span className={`admin-status admin-status-${i.status === 'connected' ? 'connected' : i.status === 'coming_soon' ? 'coming' : 'available'}`}>
-                  {i.status.replace('_', ' ')}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="section-head">
-          <span className="section-title">Consent & audit</span>
-          <span className="section-meta">Compliance scaffolding</span>
-        </div>
-        <div className="section-desc">
-          Phase 1 stores consent and audit records statically. The shape is preserved so that a future Supabase migration can plug these tables in with no schema rework.
-        </div>
-        <div className="card" style={{ padding: '6px 18px' }}>
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '10px 0' }}>
-            Recent consent grants ({CONSENT_RECORDS.length})
+            ))}
           </div>
-          {CONSENT_RECORDS.slice(0, 4).map((c) => {
-            const person = PERSON_BY_ID[c.personId];
-            return (
-              <div key={c.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: 12, padding: '10px 0', borderTop: '1px solid var(--rule-soft)', fontSize: 12 }}>
-                <span>{person?.name ?? c.personId}</span>
-                <span style={{ color: 'var(--muted)' }}>{c.scope.replace('_', ' ')}</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--muted)' }}>
-                  {new Date(c.grantedAt).toLocaleDateString()} · {c.version}
-                </span>
-              </div>
-            );
-          })}
+        </>
+      )}
 
-          <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em', padding: '18px 0 10px' }}>
-            Recent audit entries ({AUDIT_LOGS.length})
-          </div>
-          {AUDIT_LOGS.slice(0, 4).map((log) => {
-            const actor = PERSON_BY_ID[log.actorPersonId];
-            return (
-              <div key={log.id} style={{ display: 'grid', gridTemplateColumns: '1fr 1.4fr auto', gap: 12, padding: '10px 0', borderTop: '1px solid var(--rule-soft)', fontSize: 12 }}>
-                <span>{actor?.name ?? log.actorPersonId} · <span style={{ color: 'var(--muted)' }}>{log.action.replace('_', ' ')}</span></span>
-                <span style={{ color: 'var(--muted)' }}>{log.diffSummary}</span>
-                <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 10.5, color: 'var(--muted)' }}>
-                  {new Date(log.at).toLocaleDateString()}
-                </span>
+      {tab === 'governance' && (
+        <>
+          <div className="section-desc">Visibility scopes and compliance scaffolding. Individual context is protected by design.</div>
+          <div className="card" style={{ padding: '4px 22px' }}>
+            {VISIBILITY_SCOPES.map((v) => (
+              <div className="admin-row" key={v.scope}>
+                <div><div className="admin-row-label">{v.scope}</div><div className="admin-row-desc">{v.detail}</div></div>
+                <div className="admin-row-value">enabled</div>
               </div>
-            );
-          })}
-        </div>
-      </div>
+            ))}
+            {[['Consent records', 'Per-person consent for publish and partner visibility'], ['Audit log', 'Every publish/edit recorded with actor and diff'], ['Data retention', '730 days default · 2555 for regulated packs']].map(([label, desc]) => (
+              <div className="admin-row" key={label}>
+                <div><div className="admin-row-label">{label}</div><div className="admin-row-desc">{desc}</div></div>
+                <div className="admin-row-value">placeholder</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {tab === 'integrations' && (
+        <>
+          <div className="section-desc">Connection points for HR, collaboration, and BI systems. Status chips only in the demo.</div>
+          <div className="card" style={{ padding: '4px 22px' }}>
+            {INTEGRATIONS.map((it) => (
+              <div className="admin-row" key={it.name} style={{ gridTemplateColumns: '1fr 140px' }}>
+                <div><div className="admin-row-label">{it.name}</div></div>
+                <div style={{ alignSelf: 'center' }}>
+                  <span className={`admin-status admin-status-${it.status}`}>{it.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

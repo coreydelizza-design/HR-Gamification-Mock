@@ -1425,13 +1425,13 @@ export const ORG_CARDS_TIER2: OrganizationCard[] = [
     governanceAreas: [],
     notOwned: [
       'Final hiring decision (owned by the hiring org).',
-      'Compensation policy (owned by People Operations).',
+      'Total-rewards policy (owned by People Operations).',
       'Onboarding after start (owned by People Operations).',
     ],
     requiredInputs: [
       { input: 'Approved role and headcount', fromOrgId: 'o-fin', format: 'Approval', timing: 'Before sourcing', qualityBar: 'Budgeted and signed off.' },
       { input: 'Role scope and must-haves', fromOrgId: 'o-eng', format: 'Brief', timing: 'At kickoff', qualityBar: 'Specific and realistic.' },
-      { input: 'People policy and comp bands', fromOrgId: 'o-hr', format: 'Guidance', timing: 'Per role', qualityBar: 'Current bands.' },
+      { input: 'People policy and total-rewards guidance', fromOrgId: 'o-hr', format: 'Guidance', timing: 'Per role', qualityBar: 'Current guidance.' },
     ],
     missingInputFailureModes: [],
     escalationTriggers: [],

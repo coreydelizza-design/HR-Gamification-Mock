@@ -1,0 +1,54 @@
+# Org Insights & Guardrails — Lock
+
+Org Insights is the aggregate organizational-clarity screen. It is **aggregate-only**. This doc also folds in the v2 gamification guardrails.
+
+## Aggregate-only rule
+
+- Org Insights aggregates only. **No individual is ever named** on an Org Insights surface (except as the actor in an audit log, per `PRIVACY_GOVERNANCE_LOCK.md`).
+- **No surface compares two named employees** against each other on any metric.
+- Any matrix counts cards / orgs, not people, and frames buckets as **states**, not labels for individuals.
+
+## Questions it answers
+
+- Which orgs are unclear about what they own?
+- Which orgs have stale cards?
+- Which relationships lack agreements?
+- Which handoffs are at risk?
+- Which meetings are not ready?
+- Which orgs need to define required inputs?
+- Which orgs are helping others succeed well?
+- Where is the operating model unclear?
+
+It surfaces: org-card coverage, freshness mix, missing success models, missing required-input guidance, missing handoff checklists, missing decision rights, stale agreements, agreement coverage by org, meeting-fit trends, dependency risk, cross-org friction themes (org-level), highest-risk handoffs, nudges by organization, and org-pack adoption. All values come from the deterministic analysis engines.
+
+## FORBIDDEN on every insight surface
+
+- Any **individual** metric, ranking, friction score, or comparison.
+- Any **personality**, culture-fit, or working-style label applied to a person.
+- Any **performance** label or personnel-action signal.
+- Any **surveillance** framing.
+
+`OrgNudge` messages are advisory, org-level, and never punitive.
+
+## Gamification guardrails (folded from GAMIFICATION_LOCK)
+
+Badges recognize **collaboration readiness, not performance**. They are awarded to **organizations** (and occasionally teams) — `OrgBadge.awardedTo: 'organization' | 'team'`, keyed by `awardedToOrgId`. **Never** to a person, and never used to compare people.
+
+Each `OrgBadge` carries an explainable, non-punitive `awardedReason`. Citing one inside a personnel-action document must be obviously inappropriate.
+
+### The 10 org badges (`OrgBadgeKey`)
+
+```
+org_card_published        Org Card Published
+success_model_complete    Success Model Complete
+inputs_defined            Inputs Defined
+handoff_ready             Handoff Ready
+agreement_verified        Agreement Verified
+fresh_this_quarter        Fresh This Quarter
+decision_rights_clear     Decision Rights Clear
+escalation_path_clear     Escalation Path Clear
+partner_org_ready         Partner Org Ready
+meeting_fit_ready         Meeting Fit Ready
+```
+
+Badge language is configured per pack (`OrgPack.badgeLanguage`), so the labels are white-labelable but the awarding subject (org/team) is fixed.

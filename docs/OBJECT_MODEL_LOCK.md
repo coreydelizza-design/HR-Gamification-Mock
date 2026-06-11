@@ -1,48 +1,50 @@
 # Object Model — Lock
 
-The Fieldguide data model is **shaped for Supabase extraction from day one**, even though Phase 1 is static. Identifiers are string slugs that will become UUIDs; timestamps are ISO strings; foreign keys are named `*Id`.
+The v3 data model is **shaped for Supabase extraction from day one**, even though Phase 1 is static. Same discipline as v2: string IDs (UUID-ready slugs), foreign keys named `*Id`, ISO-string timestamps, references-by-ID (no nested-only objects on first-class records).
 
-## First-class objects
+Source of truth: `src/lib/types.ts`. The v3 organization-first block lives at the bottom of that file.
 
-Every object below is defined in `src/lib/types.ts` and demoed in `src/data/`.
+## Core objects → future tables
 
-| Object              | Phase 1 file                  | Future table             |
-|---------------------|-------------------------------|---------------------------|
-| `Enterprise`        | `data/enterprise.ts`          | `enterprises`             |
-| `Organization`      | `data/enterprise.ts`          | `organizations`           |
-| `OrgPack`           | `data/enterprise.ts`          | `org_packs`               |
-| `Team`              | `data/teams.ts`               | `teams`                   |
-| `Person`            | `data/people.ts`              | `people`                  |
-| `TeamMembership`    | `data/people.ts`              | `team_memberships`        |
-| `WorkCard`          | `data/people.ts`              | `work_cards`              |
-| `TeamCard`          | `data/teams.ts`               | `team_cards`              |
-| `CardSection`       | `data/cardSections.ts`        | `card_sections`           |
-| `CardAnswer`        | `data/people.ts`, `data/teams.ts` | `card_answers`        |
-| `VisibilityRule`    | (in `CardAnswer.visibility`)  | `visibility_rules`        |
-| `Meeting`           | `data/meetings.ts`            | `meetings`                |
-| `MeetingAttendee`   | `data/meetings.ts`            | `meeting_attendees`       |
-| `MeetingFitBrief`   | `data/meetings.ts`            | `meeting_fit_briefs`      |
-| `CollaborationNeed` | `data/agreements.ts`          | `collaboration_needs`     |
-| `CollaborationOffer`| `data/agreements.ts`          | `collaboration_offers`    |
-| `Dependency`        | `data/agreements.ts`          | `dependencies`            |
-| `WorkingAgreement`  | `data/agreements.ts`          | `working_agreements`      |
-| `AgreementSection`  | `data/agreements.ts`          | `agreement_sections`      |
-| `ImpactLink`        | (planned: `data/impact.ts`)   | `impact_links`            |
-| `Mission`           | (planned: `data/impact.ts`)   | `missions`                |
-| `Badge`             | `data/badges.ts`              | `badges`                  |
-| `Nudge`             | `data/orgInsights.ts`         | `nudges`                  |
-| `FreshnessSignal`   | `data/orgInsights.ts`         | `freshness_signals`       |
-| `ConsentRecord`     | `data/admin.ts`               | `consent_records`         |
-| `AuditLog`          | `data/admin.ts`               | `audit_logs`              |
+| Object (`types.ts`)        | Phase 1 file                  | Future table                  |
+|----------------------------|-------------------------------|-------------------------------|
+| `Enterprise`               | `data/enterprise.ts`          | `enterprises`                 |
+| `Organization`             | `data/organizations.ts`       | `organizations`               |
+| `OrganizationCard`         | `data/orgCards*.ts`           | `organization_cards`          |
+| `OrgDependency`            | `data/orgDependencies.ts`     | `org_dependencies`            |
+| `OrgNeed`                  | `data/orgNeedsOffers.ts`      | `org_needs`                   |
+| `OrgOffer`                 | `data/orgNeedsOffers.ts`      | `org_offers`                  |
+| `SuccessAgreement`         | `data/successAgreements.ts`   | `success_agreements`          |
+| `SuccessAgreementSection`  | `data/successAgreements.ts`   | `success_agreement_sections`  |
+| `OrgMeeting`               | `data/meetingFit.ts`          | `org_meetings`                |
+| `OrgMeetingFit`            | `data/meetingFit.ts`          | `org_meeting_fits`            |
+| `CollabEdge`               | `data/collaborationMap.ts`    | `collab_edges`                |
+| `RoleCard`                 | `data/roleCards.ts`           | `role_cards`                  |
+| `Person` / `IndividualWorkCard` (`WorkCard`) | `data/people.ts`, `data/individualWorkCards.ts` | `people` / `individual_work_cards` |
+| `OrgPack`                  | `data/orgPacks.ts`            | `org_packs`                   |
+| `OrgInsight` / `OrgNudge`  | `data/orgInsights.ts`         | `org_insights` / `org_nudges` |
+| `OrgBadge`                 | `data/badges.ts`              | `org_badges`                  |
+| `ConsentRecord` / `AuditLog` | `data/admin.ts`             | `consent_records` / `audit_logs` |
+
+Each data file exports an array plus a `*_BY_ID` lookup map (v2 convention).
 
 ## Modeling rules
 
-- **Working style is not a central object.** Visual variety on avatars uses `visualKey: 'a' | 'b' | 'c' | 'd'` with no personality claim attached.
-- **No individual scoring tables.** Readiness is computed, returned as `ReadinessSummary`, and never persisted as a per-person rank.
-- **Per-section visibility lives on `CardAnswer.visibility`.** Card-level `visibility` is the default; a section may scope tighter.
-- **Working agreements are bi-directional and section-keyed.** `team_a_needs` and `team_b_needs` are separate sections so each side is explicit.
-- **Meetings reference both Person and Team context.** `MeetingFitBrief.requiredInputs[].teamId` ties prep to the team that owes it.
+- **Organization is the primary record.** `OrganizationCard` carries the prose sections (flattened as `string`/`string[]`); sections 1/6/10/11/13 are joined from `Organization`, `OrgDependency`, `SuccessAgreement`, `RoleCard`/`Person`, and freshness (see `ORG_CARD_SCHEMA.md`).
+- **Needs / offers / dependencies are first-class** — `OrgNeed`, `OrgOffer`, `OrgDependency` with `strength` and `health` enums, referenced by ID.
+- **Agreements are bi-directional and section-keyed** — `a_needs_from_b` and `b_needs_from_a` are separate `SuccessAgreementSection` rows.
+- **Individual records are demoted, not deleted.** `Person`, `RoleCard`, `IndividualWorkCard` persist as nested context, reachable only via org or meeting detail.
+- **No individual scoring tables.** Readiness/analysis is computed and returned (`ReadinessSummary`, `OrgSuccessAnalysis`, `CrossOrgSuccessAnalysis`); never persisted as a per-person rank.
+- **Visual variety only.** `visualKey: 'a'|'b'|'c'|'d'` tints avatars and carries no personality claim.
+
+## Supabase extraction path
+
+1. Apply a schema mirroring the table column above; slugs become UUIDs.
+2. Replace each `data/*.ts` export with a query from its table.
+3. Add an auth layer; resolve the current user from the session, not a hardcoded ID.
+
+Until then: static demo only. No Supabase, no auth, no backend, no new runtime dependencies.
 
 ## Extension policy
 
-New interfaces are welcome **only if** the spine demands them. Do not extend types for cosmetic UI state — use local component state for that.
+New interfaces are welcome **only if** the spine demands them. Do not extend types for cosmetic UI state — use local component state. Never add a type that ranks or compares named individuals.

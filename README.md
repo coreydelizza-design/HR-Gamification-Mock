@@ -1,52 +1,48 @@
 # Fieldguide
 
-**The enterprise operating manual for how people, teams, and organizations work together.**
+**The organization-first collaboration-readiness platform — how every organization succeeds, what it owns, what it needs, and how it helps others.**
 
 > Org charts show reporting structure. Fieldguide shows working structure.
 
-Fieldguide is a collaboration readiness platform. It captures how each person works, how each team operates, and how teams hand off to each other — then uses that context to make meetings ready, surface stale handoffs, and keep cross-team agreements healthy.
+Fieldguide makes the **Organization Card** the primary product object. Each organization (department / function) publishes how it succeeds, what it owns and explicitly does not own, what it needs from others, how it helps others, its dependencies, engagement model, meeting norms, and handoff rules. Individual work cards survive only as nested supporting context.
 
 Phase 1 is a Vite + React + TypeScript prototype with full static demo data, deployable to Railway with no backend.
 
 - 🌓 **Light + dark mode** with OS-preference detection and `localStorage` persistence
 - 🎨 **White-label ready** — change four CSS variables at the top of `src/styles/index.css` to fully rebrand
 - 🧭 **Monochrome by default** — color is reserved for semantic readiness states (success / warning / danger / muted)
+- 🧮 **Deterministic, explainable scoring** — every readiness score carries a plain-language rationale; nothing is scored per person
 
-## Primary spine
+## Product spine
 
-Person → Work Card → Team Card → Meeting Fit → Working Agreement → Impact Map → Org Intelligence
+Enterprise → Organization Catalog → Organization Card → Organization Success Model → Cross-Org Needs/Offers → Success Agreements → Meeting Fit → Collaboration Map → Org Intelligence
+
+Individual nesting: Enterprise → Organization → Team → Role → Individual Work Card.
 
 ## The seven views
 
-**Workspace**
-- `Home` — what you need to know to work well today: your card readiness, the next meeting's fit, the people and teams you're about to engage, handoff clarity gaps, the six-category collaboration-readiness rollup, and the active operating norms in your Org Pack.
-- `My Fieldguide` — your individual operating manual. Ten sections (Communication, Meetings, Feedback, Decisions, Focus, Escalation, What I need from others, What others can count on me for, Visibility, Freshness). Per-section visibility and a Preview-as-teammate mode.
-- `People & Teams` — tabbed: People (working-context cards) and Teams (operating-entity cards).
-- `Meetings` — meeting fit and readiness, not meeting summaries. Each meeting shows attendee context, required team inputs, decision owner, prep gaps, async recommendation, suggested follow-up, and any governing agreement.
-- `Working Agreements` — first-class team-to-team operating agreements (mutual needs, required inputs, handoff checklist, meeting norms, escalation path, decision rights, common failure points, review cadence).
+**Collaboration**
+- `Home` — where organizational clarity needs attention today: enterprise collaboration-readiness meters, organizations needing attention, critical cross-org relationships, meetings at risk, how organizations help each other, and aggregated next-best actions.
+- `Organization Cards` — a searchable, filterable catalog of 36 organizations across two tiers (12 rich, 24 catalog). Each detail view renders the 13-section card; Tier-2 cards show "section not yet published" placeholders — honest about depth, structurally identical.
+- `Collaboration Map` — CSS-only relationship map with four modes: Enterprise, Selected org, Mutual success (runs the cross-org analysis), and Risk.
+- `Success Agreements` — first-class organization-to-organization operating agreements with a six-state lifecycle (draft → shared → mutual_review → published → needs_refresh → archived).
+- `Meeting Fit` — is this cross-org meeting ready? Required orgs represented, inputs present, decision owner, format vs. norms, async recommendation, handoff impact. Attendee individual-card context renders inline in the detail (the meeting-prep survival rule).
 
-**Organization**
-- `Org Insights` — aggregate operating clarity: adoption, freshness, handoff gaps, dependency gaps, advisory nudge queue. No individual rankings.
-- `Admin` — enterprise + organization configuration: Org Packs, required card sections, team templates, badge language, integrations, retention, consent and audit.
+**Enterprise**
+- `Org Insights` — aggregate organizational clarity only: card coverage, freshness mix, dependency risk, agreement coverage, which orgs are unclear about what they own, org-pack adoption. No individual metric, ranking, or comparison.
+- `Admin` — enterprise + organization configuration: org catalog, card templates, the 11 org packs, visibility & governance, integrations.
 
-Each view answers one or more of the six product questions:
-
-1. How do I work with this person?
-2. How do I work with this team?
-3. Is this meeting ready?
-4. What does this team need from us?
-5. What agreement governs this handoff?
-6. Where is operating clarity missing?
+The product answers nine questions: how does this organization succeed; what does it own; what does it need from others; how does it help others; how should another organization engage it; what handoffs are at risk; what Success Agreements govern a relationship; is this cross-org meeting ready; where is the operating model unclear.
 
 ## What Fieldguide is not
 
 - Not a personality test or working-style quiz.
-- Not a generic HR dashboard.
+- Not a generic HR engagement dashboard.
 - Not a gamified leaderboard or employee-ranking system.
 - Not a meeting-summary or transcription tool.
-- Not a system of record for hiring, firing, promotion, compensation, discipline, or performance decisions.
+- Not a system of record for hiring, firing, promotion, total-rewards, discipline, or performance decisions.
 
-The product enforces these boundaries at the data, UI, and gamification layers. See `docs/PRIVACY_GOVERNANCE_LOCK.md` and `docs/GAMIFICATION_LOCK.md`.
+There is no individual ranking, friction score, or comparison of two named employees — anywhere, including the data shapes. All analytics aggregate at the organization / relationship level. See `docs/PRIVACY_GOVERNANCE_LOCK.md` and `docs/ORG_INSIGHTS_GUARDRAILS.md`.
 
 ## Local development
 
@@ -64,113 +60,80 @@ npm run build
 npm run preview
 ```
 
-`preview` serves the built static assets on `${PORT:-4173}` — that is the script Railway runs.
+`npm run build` runs `tsc -b && vite build`. `preview` serves the built assets on `${PORT:-4173}` — the script Railway runs.
 
 ## Deploy to Railway
 
 1. Push this repo to GitHub.
-2. In Railway: **New Project → Deploy from GitHub repo → select this repo**.
+2. Railway: **New Project → Deploy from GitHub repo → select this repo**.
 3. Railway auto-detects Nixpacks and uses the `start` script (`npm run preview`).
-4. After the first deploy: service → **Settings → Networking → Generate Domain** for a public URL.
+4. After the first deploy: service → **Settings → Networking → Generate Domain**.
 
-No env vars needed for Phase 1 — all data is static, baked into `src/data/`.
+No env vars needed — all data is static, baked into `src/data/`.
 
 ## Theming & white-labeling
 
-### Toggle light / dark
-
-A sun/moon button in the top-right toggles theme. The choice persists via `localStorage` (key: `fieldguide:theme`). First-time visitors get their OS preference (`prefers-color-scheme`) as default. An inline script in `index.html` applies the theme before paint to prevent a flash of incorrect colors.
-
-### White-label in 60 seconds
-
-Open `src/styles/index.css` and edit the first block:
-
-```css
-:root {
-  --brand: #0A0A0A;            /* Primary brand color (light mode)  */
-  --brand-on: #FFFFFF;         /* Foreground on brand (light mode)  */
-  --brand-dark: #FAFAFA;       /* Primary brand color (dark mode)   */
-  --brand-on-dark: #0A0A0A;    /* Foreground on brand (dark mode)   */
-}
-```
-
-That is it. Every component reads from these variables — no need to grep through TSX files.
-
-### Add a new theme variant
-
-Append a selector to `src/styles/index.css`:
-
-```css
-[data-theme="brand-blue"] {
-  --brand: #1E40AF;
-}
-```
-
-Then set `data-theme="brand-blue"` on `<html>` from your code.
+A sun/moon button toggles theme; the choice persists via `localStorage` (key `fieldguide:theme`), defaulting to OS preference, applied before paint to avoid a flash. To rebrand, edit the four `--brand*` variables at the top of `src/styles/index.css`; every component reads from them.
 
 ## Repo structure
 
 ```
 src/
-├── App.tsx                       view registry, top-level state
-├── main.tsx                      React entry
-├── styles/index.css              full design system + collaboration patterns
+├── App.tsx                       view registry, top-level state (no router)
+├── styles/index.css              design system + organization-first surfaces
 ├── lib/
-│   ├── types.ts                  26-interface data model (Supabase-shaped)
-│   ├── readiness.ts              explainable, advisory readiness math
+│   ├── types.ts                  data model (Supabase-shaped: string IDs, *Id FKs, ISO timestamps)
+│   ├── orgAnalysis.ts            analyzeOrganizationSuccess (11 dimensions) + analyzeCrossOrgSuccess
+│   ├── orgData.ts                memoized wiring of data into the analysis engine
+│   ├── readiness.ts              shared readiness helpers (levels, colors, status labels)
 │   └── theme.ts                  light/dark hook with persistence
-├── data/                         static demo data (extract first when moving to Supabase)
-│   ├── enterprise.ts             Enterprise + Organization + OrgPacks
-│   ├── cardSections.ts           Ten standard card sections
-│   ├── teams.ts                  Teams + TeamCards (operating entities)
-│   ├── people.ts                 People + WorkCards + CardAnswers
-│   ├── meetings.ts               Meetings + MeetingFitBriefs
-│   ├── agreements.ts             WorkingAgreements + sections + collaboration plumbing
-│   ├── badges.ts                 Allowed-badge catalog + earned badges
-│   ├── orgInsights.ts            Aggregate metrics + nudges + freshness signals
-│   ├── operatingNorms.ts         Active norms and partner org packs
-│   └── admin.ts                  Integrations, templates, retention, consent, audit
+├── data/                         static demo data (extraction point for Supabase)
+│   ├── organizations.ts          canonical 36-org registry, two tiers, 7 categories
+│   ├── orgPacks.ts               11 function-specific packs
+│   ├── orgCards.ts               aggregator over orgCardsTier1 / orgCardsTier2
+│   ├── orgCardsTier1.ts          12 rich organization cards (full 13 sections)
+│   ├── orgCardsTier2.ts          24 catalog organization cards
+│   ├── orgDependencies.ts        cross-org dependencies (health / strength)
+│   ├── orgNeedsOffers.ts         OrgNeed + OrgOffer (first-class)
+│   ├── successAgreements.ts      14 Success Agreements + sections
+│   ├── meetingFit.ts             8 organization-first meetings + fit briefs
+│   ├── collaborationMap.ts       collaboration map edges
+│   ├── roleCards.ts              role cards + person→organization mapping
+│   ├── people.ts                 people + nested individual work cards
+│   ├── cardSections.ts           individual-card section definitions (nested context)
+│   └── enterprise.ts             enterprise tenant record
 ├── components/
-│   ├── Icons.tsx                 Inline SVG icon set (no external deps)
-│   ├── Shared.tsx                Avatar, Bar, Ring, ReadinessMeter, StatusPill, FreshnessBadge, TeamMark
+│   ├── Icons.tsx                 inline SVG icon set
+│   ├── Shared.tsx                Avatar, Bar, Ring, ReadinessMeter, StatusPill, FreshnessBadge
+│   ├── Org.tsx                   organization-first panels, badges, preview cards
 │   ├── Sidebar.tsx               7-item primary nav
-│   └── TopBar.tsx                Breadcrumb + theme toggle
-└── views/                        Home, MyFieldguide, PeopleTeams, PersonDetail, TeamDetail,
-                                  Meetings, MeetingDetail, WorkingAgreements, AgreementDetail,
-                                  OrgInsights, Admin
+│   └── TopBar.tsx                enterprise crumb, freshness, search, theme toggle
+└── views/                        Home, OrganizationCards, OrganizationCardDetail, CollaborationMap,
+                                  SuccessAgreements, SuccessAgreementDetail, MeetingFit,
+                                  MeetingFitDetail, OrgInsights, Admin
 ```
-
-## Design language
-
-- **Fonts**: Fraunces (serif, headings), Geist (sans, body), JetBrains Mono (numbers/codes).
-- **Default palette**: monochrome — white/light gray surfaces over near-black text, inverted in dark mode.
-- **Status colors**: green (success), amber (warning), red (danger), neutral muted. Used sparingly, semantic only.
-- **No personality-style color as primary identity.** Avatars use a deterministic visual key for color variety; the key carries no personality claim.
 
 ## Where to take it next (Phase 2)
 
-The data files in `src/data/` are the natural extraction point for moving to Supabase. Each maps cleanly to one or two tables — see `docs/OBJECT_MODEL_LOCK.md` for the table-by-table mapping.
-
-Integration layer next:
-- Slack / Microsoft Teams for nudge delivery and meeting fit briefs.
-- Google Calendar / Outlook for meeting context.
-- HRIS sync for team-membership freshness.
-
-Until then: static demo only. No Supabase, no auth, no backend.
+The files in `src/data/` are the extraction point for Supabase — each maps cleanly to one or two tables. See `docs/OBJECT_MODEL_LOCK.md`. Integration layer next: Slack / Teams for nudges, Calendar / Outlook for meeting context, HRIS for membership freshness. Until then: static demo only — no Supabase, no auth, no router.
 
 ## Documentation
 
-The `docs/` directory contains the product-level locks that guide every change:
+The `docs/` directory contains the v3 lock set:
 
-- `PRODUCT_SPINE.md` — positioning, primary spine, forbidden directions.
-- `OBJECT_MODEL_LOCK.md` — 26-interface data model + future Supabase table map.
-- `GAMIFICATION_LOCK.md` — allowed readiness categories and badges; forbidden patterns.
-- `PRIVACY_GOVERNANCE_LOCK.md` — hard product boundaries on employment decisions.
-- `UI_NAVIGATION_LOCK.md` — primary nav and retired labels.
-- `ORG_PACKS.md` — multi-organization configuration model.
-- `MEETING_FIT_ENGINE.md` — what the engine answers and what it deliberately is not.
-- `WORKING_AGREEMENTS.md` — module shape and status lifecycle.
-- `BUILD_NOTES.md` — scripts, repo shape, future Supabase migration.
+- `PRODUCT_SPINE.md` — positioning, the v3 spine, the nine product questions.
+- `ORGANIZATION_FIRST_MODEL.md` — organization-as-primary, nav, forbidden directions.
+- `ORG_CARD_SCHEMA.md` — the 13-section card schema and tier model.
+- `ORG_SUCCESS_ANALYSIS.md` — the 11 success dimensions.
+- `CROSS_ORG_SUCCESS_ANALYSIS.md` — the mutual-success engine.
+- `SUCCESS_AGREEMENTS.md` — six-state lifecycle and section architecture.
+- `MEETING_FIT_ENGINE.md` — org-first meeting fit + the meeting-prep survival rule.
+- `COLLABORATION_MAP.md` — the four map modes.
+- `ORG_INSIGHTS_GUARDRAILS.md` — aggregate-only guardrails and org badges.
+- `ADMIN_ORG_PACKS.md` — Admin sections and the 11 packs.
+- `OBJECT_MODEL_LOCK.md` — object model + Supabase extraction path.
+- `PRIVACY_GOVERNANCE_LOCK.md` — hard boundaries on personnel decisions.
+- `BUILD_NOTES.md` — stack, scripts, data layout.
 
 ## License
 

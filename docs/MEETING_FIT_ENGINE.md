@@ -1,62 +1,58 @@
-# Meeting Fit Engine
+# Meeting Fit Engine — Lock
 
-The Meeting Fit Engine answers one question per meeting:
+Meeting Fit answers one question per meeting, **before** it runs:
 
-> **Is this meeting ready, and what context is missing?**
+> Is this cross-org meeting ready, and what is missing?
 
-It does **not** try to be a note-taker, a transcription tool, or a summary generator. It runs **before** the meeting.
+It is **not** a note-taker, transcriber, or summary generator. It is the third product object after Organization Card and Success Agreement.
 
-## Inputs
+Source of truth: `OrgMeeting`, `OrgMeetingFit`, `MeetingFitStatus` in `src/lib/types.ts`.
 
-A `MeetingFitBrief` (see `src/lib/types.ts`) combines:
+## Org-first reframe
 
-- The `Meeting` (title, owner, agenda summary, decision requested, required team IDs).
-- `MeetingAttendee[]` (role, pre-read confirmation).
-- The work cards of attendees (for attendee context).
-- The team cards of `requiredTeamIds` (for required inputs).
-- Optionally, a `governingAgreementId` pointing to the relevant `WorkingAgreement`.
+A meeting is evaluated by **organizations**, not teams:
 
-## Statuses
+1. Which organizations are involved (`participatingOrgIds`).
+2. Whether required orgs are represented (`missingOrgIds` empty).
+3. Whether required inputs exist (`requiredInputs[].received`, keyed by `orgId`).
+4. Whether a Success Agreement applies (`OrgMeeting.governingAgreementId`).
+5. Whether the decision owner is present (`decisionOwnerPresent`).
+6. Whether the format matches org norms (`formatMatchesNorms`).
+7. Whether async is better (`asyncRecommendation`).
+8. Whether handoff criteria are satisfied (`handoffImpact`).
+9. Whether it creates or resolves cross-org risk (`createsOrResolvesRisk`).
+
+## Statuses (`MeetingFitStatus`)
 
 ```
-draft              — not yet sent / agenda not finalized
-ready              — all checks pass; the meeting is worth holding
-decision_ready     — explicit subset of ready: a single decision can be made today
-async_recommended  — the work could be done in writing; live time not required
-at_risk            — required inputs missing, decision owner not confirmed, etc.
+draft              — agenda not finalized
+ready              — checks pass; worth holding
+decision_ready     — a single decision can be made today
+async_recommended  — could be handled in writing; no live time needed
+at_risk            — required inputs missing, decision owner absent, etc.
 ```
 
-Status is **declared on the brief** and used directly by the UI (`StatusPill`, `ReadinessMeter`). The underlying percentage is still computed for transparency (inputs received × agenda readiness × pre-read confirmation) but does not override the declared status.
+Status is declared on the fit; the UI uses it directly (`StatusPill`). `agendaReadiness` is `complete | partial | missing`. `nextBestAction` and `followUpOwnerPersonId` close the loop.
 
-## Meeting Fit checks
+## Seeded meetings (8)
 
-These are the questions the engine answers, drawn from `OrgPack.meetingFitRules`:
+1. Sales↔Legal contract review — missing inputs → `at_risk`.
+2. Product↔Engineering roadmap review — `ready`.
+3. CS↔Support escalation review — `at_risk`.
+4. HR↔Finance headcount planning — missing decision owner → `at_risk`.
+5. Security↔IT incident readiness — `decision_ready`.
+6. PMO↔Engineering delivery risk review — `ready`.
+7. Data&AI↔BizOps automation intake — `async_recommended`.
+8. Marketing↔Sales campaign handoff — `draft`.
 
-1. Does the meeting have a clear purpose? (agenda summary present)
-2. Is the agenda finalized? (`agendaReadiness === 'complete'`)
-3. Are required teams represented? (every `requiredTeamIds` has an attendee from that team or a written input)
-4. Are decision-makers included? (`decisionOwnerPersonId` is on the attendee list)
-5. Are required inputs attached? (`requiredInputs[].received`)
-6. Have attendees confirmed the pre-read? (`MeetingAttendee.preReadConfirmed`)
-7. Is async better? (declared via `asyncRecommendation`)
-8. Is follow-up ownership clear? (`suggestedFollowUp` non-empty)
-9. Does a working agreement apply? (`governingAgreementId` present)
+## THE MEETING-PREP SURVIVAL RULE
 
-## Output
+Demoting individual cards must not break pre-meeting prep. Therefore:
 
-The brief renders in `MeetingDetail.tsx` as a structured panel:
+> The Meeting Fit **detail** view must render an attendee-context panel inline, surfacing each attendee's individual-card highlights — communication, meeting preferences, escalation preferences.
 
-- Attendee context (narrative, drawn from attendee cards).
-- Decision owner.
-- Required team inputs (with received / pending).
-- Agenda readiness + prep gaps.
-- Governing agreement (if any).
-- Async recommendation (if any).
-- Suggested follow-up.
+Person context is reachable in **≤1 click** from any meeting. This is the only individual surface that renders inside Meeting Fit, and it is read-only context, never a score.
 
-## What the engine is not
+## Boundaries
 
-- Not a summary tool.
-- Not an automatic transcriber.
-- Not a meeting scorer that ranks attendees.
-- Not a way to flag individuals as "non-collaborative."
+No attendee is scored, ranked, or flagged as "non-collaborative." All readiness is meeting/org-level. The engine reads `OrgPack.meetingFitRules` (see `ADMIN_ORG_PACKS.md`) for its checks.

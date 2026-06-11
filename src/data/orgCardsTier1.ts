@@ -728,12 +728,12 @@ export const ORG_CARDS_TIER1: OrganizationCard[] = [
     notOwned: [
       'Sourcing and candidate pipeline (Talent Acquisition owns)',
       'Skills curriculum design (Learning & Development owns)',
-      'Compensation budget (Finance owns the envelope)',
+      'Total-rewards budget (Finance owns the envelope)',
     ],
 
     requiredInputs: [
       {
-        input: 'Approved headcount and compensation envelope',
+        input: 'Approved headcount and total-rewards envelope',
         fromOrgId: 'o-fin',
         format: 'Signed-off plan by org and role band',
         timing: 'Ahead of each hiring and review cycle',

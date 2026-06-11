@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "Fieldguide — the enterprise operating manual for how people, teams, and organizations work together. Collaboration readiness, team cards, working agreements, and meeting fit.",
+  "description": "Fieldguide — the organization-first collaboration-readiness platform. Organization cards, cross-org dependencies, success agreements, meeting fit, and a collaboration map. Org charts show reporting structure; Fieldguide shows working structure.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

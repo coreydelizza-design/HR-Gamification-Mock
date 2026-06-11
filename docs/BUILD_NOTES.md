@@ -3,8 +3,8 @@
 ## Stack
 
 - Vite + React 18 + TypeScript (strict).
-- No external runtime dependencies beyond React and `react-dom`.
-- Deployed to Railway via `npm run preview` (already wired in `railway.json`).
+- **Zero runtime dependencies beyond `react` and `react-dom`.** No graph library, no router, no state library. Adding a runtime dep is a lock violation.
+- Light/dark + white-label variables preserved from v2 (see Theming).
 
 ## Scripts
 
@@ -12,80 +12,62 @@
 npm install
 npm run dev       # local dev with hot reload
 npm run build     # tsc -b && vite build
-npm run preview   # serves dist on $PORT (Railway uses this as `start`)
+npm run preview   # serves dist on $PORT
 ```
 
-`npm run build` runs `tsc -b` first, so all type errors are caught before Vite touches the bundle.
+`npm run build` runs `tsc -b` first, so all type errors are caught before Vite bundles.
 
-## Repo shape
+## What this is
+
+Fieldguide **v3** — the organization-first rebuild. The Organization Card is the primary object; individual work cards are nested context only. See `PRODUCT_SPINE.md` and `ORGANIZATION_FIRST_MODEL.md`.
+
+Data is **static demo only** — no Supabase, no auth, no router (the view-registry pattern in `App.tsx` is kept).
+
+## Data file layout (`src/data/`)
 
 ```
-src/
-├── App.tsx                       view registry, top-level state
-├── main.tsx                      React entry
-├── styles/index.css              full design system + v2 patterns
-├── lib/
-│   ├── types.ts                  26-interface data model
-│   ├── readiness.ts              explainable readiness math
-│   └── theme.ts                  light/dark hook + persistence
-├── data/                         static demo data; Supabase-shaped
-│   ├── enterprise.ts
-│   ├── cardSections.ts
-│   ├── teams.ts
-│   ├── people.ts
-│   ├── meetings.ts
-│   ├── agreements.ts
-│   ├── orgInsights.ts
-│   ├── operatingNorms.ts
-│   ├── badges.ts
-│   └── admin.ts
-├── components/
-│   ├── Icons.tsx                 inline SVG set, no external deps
-│   ├── Shared.tsx                Avatar, Bar, Ring, ReadinessMeter, StatusPill, FreshnessBadge, TeamMark
-│   ├── Sidebar.tsx               7-item primary nav
-│   └── TopBar.tsx                breadcrumb + theme toggle
-└── views/
-    ├── Home.tsx
-    ├── MyFieldguide.tsx
-    ├── PeopleTeams.tsx
-    ├── PersonDetail.tsx
-    ├── TeamDetail.tsx
-    ├── Meetings.tsx
-    ├── MeetingDetail.tsx
-    ├── WorkingAgreements.tsx
-    ├── AgreementDetail.tsx
-    ├── OrgInsights.tsx
-    └── Admin.tsx
+enterprise.ts            the tenant root
+organizations.ts         36-org registry, two tiers, 7 categories (canonical o-* IDs)
+orgCards*.ts             OrganizationCard prose (split tier1/tier2 if a file exceeds ~1,200 lines)
+orgSuccessModels.ts      success-model content (if split out)
+orgNeedsOffers.ts        OrgNeed + OrgOffer
+orgDependencies.ts       OrgDependency
+successAgreements.ts     SuccessAgreement + SuccessAgreementSection (~14 agreements)
+meetingFit.ts            OrgMeeting + OrgMeetingFit (8 meetings)
+collaborationMap.ts      CollabEdge (~25–31 edges)
+orgInsights.ts           OrgInsight + OrgNudge
+orgPacks.ts              11 OrgPacks
+people.ts                Person (nested context)
+roleCards.ts             RoleCard (nested context)
+individualWorkCards.ts   IndividualWorkCard / WorkCard (nested context)
+admin.ts                 governance / consent / audit placeholders
+badges.ts                OrgBadge catalog
+```
 
-docs/                              lock docs (this folder)
+Each file exports an array plus a `*_BY_ID` lookup map (v2 convention).
+
+## Library layout (`src/lib/`)
+
+```
+types.ts        the v3 data model (v3 organization-first block at the bottom)
+orgAnalysis.ts  analyzeOrganizationSuccess + analyzeCrossOrgSuccess (deterministic, explainable)
+readiness.ts    v2 readiness math, reused for the ReadinessSummary discipline
+theme.ts        light/dark hook + persistence
 ```
 
 ## Adding a view
 
-1. Add the `ViewKey` literal to `src/lib/types.ts`.
-2. Add a label entry in `src/components/TopBar.tsx#LABELS`.
-3. Add a nav entry in `src/components/Sidebar.tsx#NAV`.
-4. Add a route in `src/App.tsx` view registry.
+1. Add the `ViewKey` literal to `types.ts`.
+2. Add a label in `TopBar.tsx`.
+3. Add a nav entry in `Sidebar.tsx` (only if it is one of the 7 primary items; detail views are `PARENT_OF`-mapped, not nav entries).
+4. Add a route in the `App.tsx` view registry.
 5. Create `src/views/Foo.tsx`.
-
-## Adding a static-data file
-
-1. Define the interface in `src/lib/types.ts`.
-2. Create `src/data/foo.ts`.
-3. Export both an array (e.g. `FOOS`) and a `*_BY_ID` lookup map.
-4. Document the future Supabase table in `OBJECT_MODEL_LOCK.md`.
 
 ## Theming
 
-- White-label variables live in the first block of `src/styles/index.css`. Edit four `--brand-*` variables to rebrand.
-- Light/dark toggle is via `useTheme()` (`lib/theme.ts`). The choice persists in `localStorage` under `fieldguide:theme`. An inline script in `index.html` applies the theme before paint.
+- White-label variables live in the first block of `src/styles/index.css`.
+- Light/dark via `useTheme()` (`lib/theme.ts`), persisted in `localStorage`; an inline script in `index.html` applies the theme before paint.
 
 ## Future Supabase migration
 
-Each static data file maps cleanly to one or two tables (see `OBJECT_MODEL_LOCK.md`). The migration path:
-
-1. Spin up Supabase. Apply schema mirroring `data/*` interfaces.
-2. Replace each `data/foo.ts` export with a fetch from the table.
-3. Add an auth layer; resolve `ME` from the session, not from a hardcoded ID.
-
-Until then: static demo only. No Supabase, no auth, no backend.
+See `OBJECT_MODEL_LOCK.md` for the object → table mapping. Until then: static demo only.
