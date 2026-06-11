@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ENTERPRISE } from '../data/enterprise';
-import { ORGANIZATIONS } from '../data/organizations';
+import { useOrgData, resetDemo } from '../lib/demoStore';
 import { ORG_PACKS } from '../data/orgPacks';
 
 const ORG_CARD_SECTIONS = [
@@ -35,6 +35,13 @@ type Tab = 'enterprise' | 'catalog' | 'templates' | 'packs' | 'governance' | 'in
 
 export default function Admin() {
   const [tab, setTab] = useState<Tab>('enterprise');
+  const { organizations: ORGANIZATIONS, enterpriseLabel, modified } = useOrgData();
+
+  const onReset = () => {
+    if (window.confirm('Reset all demo data to the pristine seed? Any unsaved edits and created organizations will be discarded.')) {
+      resetDemo();
+    }
+  };
 
   return (
     <>
@@ -50,22 +57,31 @@ export default function Admin() {
       </div>
 
       {tab === 'enterprise' && (
-        <div className="card" style={{ padding: '4px 22px' }}>
-          {[
-            ['Enterprise name', ENTERPRISE.name, 'White-label display name across the product.'],
-            ['Primary domain', ENTERPRISE.primaryDomain, 'Used for SSO and email matching.'],
-            ['Region', ENTERPRISE.region, 'Data residency and default locale.'],
-            ['Default card template', 'Full 13-section organization card', 'Applied to new organizations.'],
-            ['Freshness cadence', 'Review every 90 days', 'Cards aging past cadence are flagged.'],
-            ['Default visibility', 'Organization-visible', 'Default scope for new cards.'],
-            ['Review cadence', 'Quarterly operating review', 'When org cards are revisited enterprise-wide.'],
-          ].map(([label, value, desc]) => (
-            <div className="admin-row" key={label}>
-              <div><div className="admin-row-label">{label}</div><div className="admin-row-desc">{desc}</div></div>
-              <div className="admin-row-value">{value}</div>
+        <>
+          <div className="card" style={{ padding: '4px 22px' }}>
+            {[
+              ['Enterprise name', enterpriseLabel, 'White-label display name across the product. Rename it in the Workshop section.'],
+              ['Primary domain', ENTERPRISE.primaryDomain, 'Used for SSO and email matching.'],
+              ['Region', ENTERPRISE.region, 'Data residency and default locale.'],
+              ['Default card template', 'Full 13-section organization card', 'Applied to new organizations.'],
+              ['Freshness cadence', 'Review every 90 days', 'Cards aging past cadence are flagged.'],
+              ['Default visibility', 'Organization-visible', 'Default scope for new cards.'],
+              ['Review cadence', 'Quarterly operating review', 'When org cards are revisited enterprise-wide.'],
+            ].map(([label, value, desc]) => (
+              <div className="admin-row" key={label}>
+                <div><div className="admin-row-label">{label}</div><div className="admin-row-desc">{desc}</div></div>
+                <div className="admin-row-value">{value}</div>
+              </div>
+            ))}
+          </div>
+          <div className="admin-row" style={{ marginTop: 16, gridTemplateColumns: '1fr auto', alignItems: 'center' }}>
+            <div>
+              <div className="admin-row-label">Demo data state</div>
+              <div className="admin-row-desc">{modified ? 'Demo data has been modified this session (edits / created orgs / imported session).' : 'Clean — running the pristine seed dataset.'}</div>
             </div>
-          ))}
-        </div>
+            <button className="btn-danger" onClick={onReset}>Reset demo data</button>
+          </div>
+        </>
       )}
 
       {tab === 'catalog' && (

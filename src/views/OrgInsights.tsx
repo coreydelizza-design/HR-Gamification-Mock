@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
-import { ORGANIZATIONS } from '../data/organizations';
-import { ORG_CARD_BY_ORG } from '../data/orgCards';
+import { useOrgData } from '../lib/demoStore';
 import { ORG_DEPENDENCIES } from '../data/orgDependencies';
 import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
 import { ORG_MEETING_FITS } from '../data/meetingFit';
@@ -12,7 +11,8 @@ interface Props {
 }
 
 export default function OrgInsights({ onOpenOrg }: Props) {
-  const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), []);
+  const { organizations: ORGANIZATIONS, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
+  const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), [ORGANIZATIONS]);
 
   const cardCoverage = Math.round(ORGANIZATIONS.reduce((s, o) => s + ((ORG_CARD_BY_ORG[o.id]?.publishedSections.length ?? 0) / 13), 0) / ORGANIZATIONS.length * 100);
   const freshMix = {
@@ -44,7 +44,7 @@ export default function OrgInsights({ onOpenOrg }: Props) {
     const counts: Record<string, number> = {};
     ORGANIZATIONS.forEach((o) => { counts[o.orgPackId] = (counts[o.orgPackId] ?? 0) + 1; });
     return Object.entries(counts).sort((a, b) => b[1] - a[1]);
-  }, []);
+  }, [ORGANIZATIONS]);
 
   const QuestionList = ({ title, items, empty }: { title: string; items: typeof analyses; empty: string }) => (
     <div className="home-card">

@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { Organization, OrganizationCategory } from '../lib/types';
-import { ORGANIZATIONS, ORG_CATEGORY_LABEL } from '../data/organizations';
+import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 import { successFor } from '../lib/orgData';
 import { OrgCardPreview } from '../components/Org';
 
@@ -12,6 +13,7 @@ type ReadinessFilter = 'all' | 'ready' | 'attention' | 'stale';
 const CATEGORIES: Array<OrganizationCategory | 'all'> = ['all', 'leadership', 'technology', 'revenue', 'customer', 'people', 'finance_legal', 'operations'];
 
 export default function OrganizationCards({ onOpenOrg }: Props) {
+  const { organizations: ORGANIZATIONS } = useOrgData();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<OrganizationCategory | 'all'>('all');
   const [readiness, setReadiness] = useState<ReadinessFilter>('all');
@@ -20,7 +22,7 @@ export default function OrganizationCards({ onOpenOrg }: Props) {
   const scored = useMemo(() => ORGANIZATIONS.map((o) => {
     const a = successFor(o.id);
     return { org: o, score: a?.successReadinessScore ?? 0, level: a?.level ?? 'unknown' as const };
-  }), []);
+  }), [ORGANIZATIONS]);
 
   const filtered = useMemo(() => scored.filter(({ org, score }) => {
     if (category !== 'all' && org.category !== category) return false;

@@ -1,6 +1,6 @@
 import type { RequiredInput } from '../lib/types';
-import { ORG_BY_ID, ORG_CATEGORY_LABEL } from '../data/organizations';
-import { ORG_CARD_BY_ORG } from '../data/orgCards';
+import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 import { ORG_DEPENDENCIES } from '../data/orgDependencies';
 import { ORG_NEEDS, ORG_OFFERS } from '../data/orgNeedsOffers';
 import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
@@ -43,6 +43,7 @@ function RequiredInputs({ inputs }: { inputs: RequiredInput[] }) {
 }
 
 export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpenAgreement }: Props) {
+  const { orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
   const org = orgId ? ORG_BY_ID[orgId] : undefined;
   if (!org) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Organization not found. <button className="detail-back" onClick={onBack}>Back</button></div>;
 

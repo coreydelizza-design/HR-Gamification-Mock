@@ -1,5 +1,5 @@
 import { SUCCESS_AGREEMENT_BY_ID, SUCCESS_AGREEMENT_SECTIONS } from '../data/successAgreements';
-import { ORG_BY_ID } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 import { crossFor, orgName } from '../lib/orgData';
 import { IconArrowLeft } from '../components/Icons';
 import { AgreementStatusBadge, OrgFreshnessBadge, NextBestActions, LabeledList } from '../components/Org';
@@ -11,6 +11,7 @@ interface Props {
 }
 
 export default function SuccessAgreementDetail({ agreementId, onBack, onOpenOrg }: Props) {
+  const { orgById: ORG_BY_ID } = useOrgData();
   const agreement = agreementId ? SUCCESS_AGREEMENT_BY_ID[agreementId] : undefined;
   if (!agreement) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Agreement not found. <button className="detail-back" onClick={onBack}>Back</button></div>;
 

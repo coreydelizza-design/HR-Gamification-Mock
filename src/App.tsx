@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { ViewKey } from './lib/types';
 import { useTheme } from './lib/theme';
 import { ME } from './data/people';
-import { ORG_BY_ID } from './data/organizations';
+import { useOrgData } from './lib/demoStore';
 import { SUCCESS_AGREEMENT_BY_ID } from './data/successAgreements';
 import { ORG_MEETING_BY_ID } from './data/meetingFit';
 
@@ -26,6 +26,7 @@ export default function App() {
   const [agreementId, setAgreementId] = useState<string | null>(null);
   const [meetingId, setMeetingId] = useState<string | null>(null);
   const [theme, toggleTheme] = useTheme();
+  const { orgById: ORG_BY_ID } = useOrgData();
 
   const user = ME;
 

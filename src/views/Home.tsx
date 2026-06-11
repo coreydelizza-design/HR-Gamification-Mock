@@ -1,7 +1,6 @@
 import { useMemo } from 'react';
 import type { Person, ViewKey } from '../lib/types';
-import { ORGANIZATIONS, ORG_BY_ID } from '../data/organizations';
-import { ORG_CARD_BY_ORG } from '../data/orgCards';
+import { useOrgData } from '../lib/demoStore';
 import { ORG_DEPENDENCIES } from '../data/orgDependencies';
 import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
 import { ORG_MEETINGS, ORG_MEETING_FITS, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
@@ -37,7 +36,8 @@ const HELP_ROTATION = [
 ];
 
 export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onOpenMeeting }: Props) {
-  const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), []);
+  const { organizations: ORGANIZATIONS, orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
+  const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), [ORGANIZATIONS]);
 
   // Six enterprise readiness meters
   const cardCoverage = Math.round(ORGANIZATIONS.reduce((s, o) => s + ((ORG_CARD_BY_ORG[o.id]?.publishedSections.length ?? 0) / 13), 0) / ORGANIZATIONS.length * 100);

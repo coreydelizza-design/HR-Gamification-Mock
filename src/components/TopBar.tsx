@@ -1,8 +1,7 @@
 import type { Person, ViewKey } from '../lib/types';
 import type { Theme } from '../lib/theme';
 import { IconSun, IconMoon, IconSearch } from './Icons';
-import { ENTERPRISE } from '../data/enterprise';
-import { ORGANIZATIONS } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 
 const LABELS: Record<ViewKey, string> = {
   home:                       'Home',
@@ -28,11 +27,12 @@ interface Props {
 }
 
 export default function TopBar({ view, crumbName, user: _user, theme, onToggleTheme }: Props) {
+  const { organizations, enterpriseLabel, modified } = useOrgData();
   const isDetail = DETAIL_VIEWS.includes(view);
   const crumbLabel = isDetail && crumbName ? crumbName : LABELS[view];
 
-  const staleCount = ORGANIZATIONS.filter((o) => o.freshness === 'stale').length;
-  const agingCount = ORGANIZATIONS.filter((o) => o.freshness === 'aging').length;
+  const staleCount = organizations.filter((o) => o.freshness === 'stale').length;
+  const agingCount = organizations.filter((o) => o.freshness === 'aging').length;
   const freshness = staleCount > 0
     ? `${staleCount} stale · ${agingCount} aging`
     : `${agingCount} aging`;
@@ -40,11 +40,16 @@ export default function TopBar({ view, crumbName, user: _user, theme, onToggleTh
   return (
     <div className="topbar">
       <div className="crumb">
-        {ENTERPRISE.name}
+        {enterpriseLabel}
         <span style={{ margin: '0 8px', color: 'var(--subtle)' }}>/</span>
         <strong>{crumbLabel}</strong>
       </div>
       <div className="topbar-r">
+        {modified && (
+          <span className="edited-dot" title="Demo data modified — export your session or reset to pristine demo data">
+            <span className="edited-dot-mark" /> Demo data modified
+          </span>
+        )}
         <div className="topbar-search" aria-hidden>
           <IconSearch size={13} />
           <span>Search organizations…</span>
@@ -52,8 +57,8 @@ export default function TopBar({ view, crumbName, user: _user, theme, onToggleTh
         <span className="topbar-chip" title="Card freshness across all organizations">
           {freshness}
         </span>
-        <span className="topbar-chip topbar-chip-muted" title="Enterprise default pack">
-          {ORGANIZATIONS.length} orgs · 11 packs
+        <span className="topbar-chip topbar-chip-muted" title="Organizations · packs">
+          {organizations.length} orgs · 11 packs
         </span>
         <button
           className="theme-toggle"

@@ -622,6 +622,43 @@ export type OrgCardSectionKey =
   | 'freshness';
 
 /**
+ * OrgCommercialProfile — the organization's commercial structure.
+ * COMMERCIAL DATA ATTACHES TO ORGANIZATIONS ONLY. There are no individual
+ * targets, quotas, attainment, or revenue metrics on any Person / RoleCard /
+ * IndividualWorkCard type — by design and by data shape. See
+ * docs/ORG_INSIGHTS_GUARDRAILS.md and docs/ORG_CARD_SCHEMA.md.
+ */
+export type RevenueRole =
+  | 'pl_owner'
+  | 'revenue_generating'
+  | 'revenue_influencing'
+  | 'enablement'
+  | 'shared_service'
+  | 'cost_center';
+
+export type CommercialMetric =
+  | 'revenue' | 'bookings' | 'renewals' | 'pipeline' | 'nrr' | 'cost_savings';
+
+export type Currency = 'USD' | 'EUR' | 'GBP';
+
+export interface CommercialTarget {
+  metric: CommercialMetric;
+  amount: number;             // org-level only
+  currency: Currency;
+  attainmentPct?: number;     // 0–100, org-level; never person-attributed
+}
+
+export interface OrgCommercialProfile {
+  revenueRole: RevenueRole;
+  fiscalYear: string;                 // e.g. "FY2026"
+  targets: CommercialTarget[];        // org-level only
+  budgetOwnerPersonId?: string;       // a budget owner reference — not a target owner
+  headcount?: number;
+  costCenterCode?: string;
+  keyCommercialMetrics: string[];     // e.g. "Win rate", "Avg deal cycle", "Churn %"
+}
+
+/**
  * OrganizationCard — the prose content for an Organization, flattened.
  * Sections 1/6/10/11/13 are derived (Organization, OrgDependency,
  * SuccessAgreement, RoleCard/Person, freshness). The rest are carried here.
@@ -689,6 +726,10 @@ export interface OrganizationCard {
 
   publishedSections: OrgCardSectionKey[];
   lastUpdatedAt: string;
+
+  // Commercial structure (organization-level only). Optional: not every card
+  // publishes it, and Tier-2 cards may carry only a revenue role.
+  commercial?: OrgCommercialProfile;
 }
 
 /* ── Cross-org needs / offers / dependencies (first-class) ──────── */

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import type { AgreementStatus } from '../lib/types';
 import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
-import { ORGANIZATIONS } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 import { orgName } from '../lib/orgData';
 import { agreementStatusLabel } from '../lib/readiness';
 import { SuccessAgreementCard } from '../components/Org';
@@ -14,13 +14,14 @@ interface Props {
 const STATUSES: Array<AgreementStatus | 'all' | 'needs_refresh'> = ['all', 'published', 'mutual_review', 'shared', 'draft', 'needs_refresh'];
 
 export default function SuccessAgreements({ onOpenAgreement }: Props) {
+  const { organizations: ORGANIZATIONS } = useOrgData();
   const [status, setStatus] = useState<AgreementStatus | 'all'>('all');
   const [orgFilter, setOrgFilter] = useState<string>('all');
 
   const orgsWithAgreements = useMemo(() => {
     const ids = new Set(SUCCESS_AGREEMENTS.flatMap((a) => a.orgIds));
     return ORGANIZATIONS.filter((o) => ids.has(o.id));
-  }, []);
+  }, [ORGANIZATIONS]);
 
   const filtered = SUCCESS_AGREEMENTS.filter((a) => {
     if (status !== 'all' && a.status !== status) return false;

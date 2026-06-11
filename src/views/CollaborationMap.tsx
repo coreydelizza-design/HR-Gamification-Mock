@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { CollabEdge, OrganizationCategory } from '../lib/types';
-import { ORGANIZATIONS, ORG_BY_ID, ORG_CATEGORY_LABEL, TIER1_ORGS } from '../data/organizations';
+import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { useOrgData } from '../lib/demoStore';
 import { COLLAB_EDGES } from '../data/collaborationMap';
 import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
 import { crossFor, orgName } from '../lib/orgData';
@@ -38,6 +39,7 @@ function EdgeCard({ edge, onOpenAgreement }: { edge: CollabEdge; onOpenAgreement
 }
 
 export default function CollaborationMap({ onOpenOrg, onOpenAgreement }: Props) {
+  const { organizations: ORGANIZATIONS, orgById: ORG_BY_ID, tier1: TIER1_ORGS } = useOrgData();
   const [mode, setMode] = useState<Mode>('enterprise');
   const [selOrg, setSelOrg] = useState<string>('o-eng');
   const [pairA, setPairA] = useState<string>('o-sales');
