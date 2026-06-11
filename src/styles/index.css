@@ -642,6 +642,20 @@ button { font-family: inherit; }
 .tgt-amount { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; line-height: 1; }
 .tgt-metric { font-size: 10.5px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
 
+/* Modal overlay */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex; align-items: flex-start; justify-content: center; padding: 48px 16px; z-index: 100; overflow-y: auto; animation: fadeUp 160ms ease-out; }
+.modal { background: var(--surface); border: 1px solid var(--rule); border-radius: 14px; width: 100%; max-width: 560px; padding: 24px 26px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+.modal-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 18px; }
+.modal-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 500; }
+.modal-close { background: transparent; border: none; cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; padding: 2px 6px; }
+.modal-close:hover { color: var(--ink); }
+
+/* Workshop section */
+.workshop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 880px) { .workshop-grid { grid-template-columns: 1fr; } }
+.snapshot-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); }
+.snapshot-row:last-child { border-bottom: none; }
+
 /* Wizard */
 .wizard-steps { display: flex; gap: 8px; margin-bottom: 18px; }
 .wizard-step { display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--muted); }

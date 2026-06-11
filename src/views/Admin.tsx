@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { ENTERPRISE } from '../data/enterprise';
-import { useOrgData, resetDemo } from '../lib/demoStore';
+import {
+  useOrgData, resetDemo, renameEnterprise, exportSession, importSession,
+  saveSnapshot, listSnapshots, restoreSnapshot,
+} from '../lib/demoStore';
 import { ORG_PACKS } from '../data/orgPacks';
 
 const ORG_CARD_SECTIONS = [
@@ -31,16 +34,46 @@ const VISIBILITY_SCOPES = [
   { scope: 'Private individual context', detail: 'Focus, feedback, and personal notes stay with the individual.' },
 ];
 
-type Tab = 'enterprise' | 'catalog' | 'templates' | 'packs' | 'governance' | 'integrations';
+type Tab = 'enterprise' | 'workshop' | 'catalog' | 'templates' | 'packs' | 'governance' | 'integrations';
 
-export default function Admin() {
+export default function Admin({ onNewOrg }: { onNewOrg: () => void }) {
   const [tab, setTab] = useState<Tab>('enterprise');
   const { organizations: ORGANIZATIONS, enterpriseLabel, modified } = useOrgData();
+  const [renameDraft, setRenameDraft] = useState(enterpriseLabel);
+  const [importMsg, setImportMsg] = useState<string>('');
+  const snapshots = listSnapshots();
 
   const onReset = () => {
     if (window.confirm('Reset all demo data to the pristine seed? Any unsaved edits and created organizations will be discarded.')) {
       resetDemo();
     }
+  };
+
+  const onExport = () => {
+    const data = exportSession();
+    const safe = (data.enterpriseLabel || 'fieldguide').replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+    const date = data.exportedAt.slice(0, 10);
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `fieldguide-session-${safe}-${date}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(url);
+  };
+
+  const onImportFile = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(String(reader.result));
+        if (!window.confirm(`Import session "${parsed.enterpriseLabel ?? 'unknown'}"? This overwrites the current demo data.`)) return;
+        const res = importSession(parsed);
+        setImportMsg(res.ok ? 'Session imported.' : `Import failed: ${res.error}`);
+      } catch (e) {
+        setImportMsg(`Import failed: ${String(e)}`);
+      }
+    };
+    reader.readAsText(file);
   };
 
   return (
@@ -51,7 +84,7 @@ export default function Admin() {
       </div>
 
       <div className="tab-strip">
-        {([['enterprise', 'Enterprise'], ['catalog', 'Org Catalog'], ['templates', 'Card Templates'], ['packs', 'Org Packs'], ['governance', 'Visibility & Governance'], ['integrations', 'Integrations']] as Array<[Tab, string]>).map(([k, label]) => (
+        {([['enterprise', 'Enterprise'], ['workshop', 'Workshop'], ['catalog', 'Org Catalog'], ['templates', 'Card Templates'], ['packs', 'Org Packs'], ['governance', 'Visibility & Governance'], ['integrations', 'Integrations']] as Array<[Tab, string]>).map(([k, label]) => (
           <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
@@ -84,9 +117,62 @@ export default function Admin() {
         </>
       )}
 
+      {tab === 'workshop' && (
+        <>
+          <div className="section-desc">Run a client session with no backend: rename the enterprise, create organizations, and save / load the whole session as JSON. State lives in localStorage and exported files; nothing leaves the browser.</div>
+          <div className="workshop-grid">
+            <div className="card" style={{ padding: 18 }}>
+              <div className="admin-row-label" style={{ marginBottom: 8 }}>Enterprise name</div>
+              <div className="admin-row-desc" style={{ marginBottom: 10 }}>Walk into the demo with the client's name on the masthead.</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input className="inp" value={renameDraft} onChange={(e) => setRenameDraft(e.target.value)} placeholder={enterpriseLabel} />
+                <button className="btn-primary btn-sm" onClick={() => renameEnterprise(renameDraft.trim())}>Rename</button>
+              </div>
+            </div>
+            <div className="card" style={{ padding: 18 }}>
+              <div className="admin-row-label" style={{ marginBottom: 8 }}>Create organization</div>
+              <div className="admin-row-desc" style={{ marginBottom: 10 }}>Build a new org card live during the session.</div>
+              <button className="btn-primary btn-sm" onClick={onNewOrg}>+ New organization</button>
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 18, marginTop: 12 }}>
+            <div className="admin-row-label" style={{ marginBottom: 8 }}>Session file</div>
+            <div className="admin-row-desc" style={{ marginBottom: 10 }}>The exported JSON is the consulting deliverable — it maps 1:1 onto the future Supabase seed shape (see docs/WORKSHOP_MODE.md).</div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+              <button className="btn-ghost btn-sm" onClick={onExport}>↓ Export session</button>
+              <label className="btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
+                ↑ Import session
+                <input type="file" accept="application/json,.json" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) onImportFile(f); e.target.value = ''; }} />
+              </label>
+              <button className="btn-ghost btn-sm" onClick={saveSnapshot}>Save snapshot</button>
+              {importMsg && <span style={{ fontSize: 11.5, color: 'var(--muted)' }}>{importMsg}</span>}
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 18, marginTop: 12 }}>
+            <div className="admin-row-label" style={{ marginBottom: 8 }}>Recent local snapshots</div>
+            {snapshots.length === 0 ? (
+              <div className="admin-row-desc">No snapshots yet — "Save snapshot" keeps up to 3 in this browser.</div>
+            ) : snapshots.map((s) => (
+              <div key={s.slot} className="snapshot-row">
+                <div>
+                  <div className="admin-row-label">{s.enterpriseLabel}</div>
+                  <div className="admin-row-desc">{s.orgCount} organizations · saved {new Date(s.savedAt).toLocaleString()}</div>
+                </div>
+                <button className="btn-ghost btn-sm" onClick={() => { if (window.confirm('Restore this snapshot? Overwrites current demo data.')) restoreSnapshot(s.slot); }}>Restore</button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
       {tab === 'catalog' && (
         <>
-          <div className="section-desc">Create, parent, assign owners and packs, and activate organizations. Demo-static — the UI is present; edits are not persisted.</div>
+          <div className="section-head" style={{ marginBottom: 8 }}>
+            <span className="section-meta">Create, parent, assign owners and packs, and activate organizations. Demo-static.</span>
+            <button className="btn-primary btn-sm" onClick={onNewOrg}>+ New organization</button>
+          </div>
           <div className="card" style={{ padding: '4px 22px' }}>
             {ORGANIZATIONS.slice(0, 14).map((o) => (
               <div className="admin-row" key={o.id} style={{ gridTemplateColumns: '1fr 200px' }}>

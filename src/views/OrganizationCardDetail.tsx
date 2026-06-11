@@ -22,8 +22,9 @@ import { SectionEditor, CommercialEditor, isSectionEditable } from '../component
 
 interface Props {
   orgId: string | null;
+  initialEditMode?: boolean;
   onBack: () => void;
-  onOpenOrg: (id: string) => void;
+  onOpenOrg: (id: string, edit?: boolean) => void;
   onOpenAgreement: (id: string) => void;
 }
 
@@ -44,9 +45,9 @@ function RequiredInputs({ inputs }: { inputs: RequiredInput[] }) {
   );
 }
 
-export default function OrganizationCardDetail({ orgId, onBack, onOpenOrg, onOpenAgreement }: Props) {
+export default function OrganizationCardDetail({ orgId, initialEditMode = false, onBack, onOpenOrg, onOpenAgreement }: Props) {
   const { orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
-  const [editMode, setEditMode] = useState(false);
+  const [editMode, setEditMode] = useState(initialEditMode);
   const [editingSection, setEditingSection] = useState<OrgCardSectionKey | null>(null);
   const [editingCommercial, setEditingCommercial] = useState(false);
 

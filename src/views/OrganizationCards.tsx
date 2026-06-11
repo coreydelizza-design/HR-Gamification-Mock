@@ -7,6 +7,7 @@ import { OrgCardPreview } from '../components/Org';
 
 interface Props {
   onOpenOrg: (id: string) => void;
+  onNewOrg: () => void;
 }
 
 type ReadinessFilter = 'all' | 'ready' | 'attention' | 'stale';
@@ -17,7 +18,7 @@ const REVENUE_ROLES: Array<[RevenueRole | 'all', string]> = [
   ['shared_service', 'Shared Service'], ['cost_center', 'Cost Center'],
 ];
 
-export default function OrganizationCards({ onOpenOrg }: Props) {
+export default function OrganizationCards({ onOpenOrg, onNewOrg }: Props) {
   const { organizations: ORGANIZATIONS, orgCardByOrg } = useOrgData();
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<OrganizationCategory | 'all'>('all');
@@ -65,8 +66,9 @@ export default function OrganizationCards({ onOpenOrg }: Props) {
     <>
       <div className="section-head" style={{ marginBottom: 6 }}>
         <span className="display" style={{ fontSize: 24 }}>Organization Cards</span>
-        <span className="section-meta">{ORGANIZATIONS.length} organizations · the primary operating object</span>
+        <button className="btn-primary btn-sm" onClick={onNewOrg}>+ New organization</button>
       </div>
+      <div className="section-meta" style={{ marginBottom: 4 }}>{ORGANIZATIONS.length} organizations · the primary operating object</div>
       <div className="section-desc">
         Org charts show reporting structure. Fieldguide shows working structure — how each organization succeeds,
         what it owns, what it needs, and how it helps others.
