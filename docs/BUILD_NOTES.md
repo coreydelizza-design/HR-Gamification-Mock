@@ -71,3 +71,22 @@ theme.ts        light/dark hook + persistence
 ## Future Supabase migration
 
 See `OBJECT_MODEL_LOCK.md` for the object → table mapping. Until then: static demo only.
+
+## v3.5 — Interactive workshop kit
+
+Static demo turned into a no-backend workshop instrument (still zero runtime
+deps beyond react/react-dom):
+
+- `src/lib/demoStore.ts` — mutable in-memory source (Organizations + cards +
+  enterprise label), localStorage-persisted (`fieldguide:demo-state:v1`,
+  `schemaVersion`), exposed via a `useSyncExternalStore` hook. The only seam
+  views read org/card data through; `lib/orgData.ts` analysis cache busts on
+  state identity so readiness recomputes live.
+- `src/components/Editors.tsx` + `CardEditors.tsx` — structured section editors
+  (chips / selects / entity pickers) writing through the store.
+- `src/data/orgCommercial.ts` — organization-level commercial profiles (no
+  individual targets, ever).
+- `src/components/CreateOrgWizard.tsx` + Admin "Workshop" tab — create org,
+  export/import session JSON, rename enterprise, local snapshots.
+
+See WORKSHOP_MODE.md for the session shape and the 1:1 Supabase seed mapping.
