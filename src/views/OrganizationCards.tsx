@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { Organization, OrganizationCategory, RevenueRole } from '../lib/types';
-import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { ORG_CATEGORY_LABEL } from '../lib/dataSource';
 import { useOrgData } from '../lib/demoStore';
 import { successFor } from '../lib/orgData';
 import { OrgCardPreview } from '../components/Org';

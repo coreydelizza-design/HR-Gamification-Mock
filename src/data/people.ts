@@ -1,4 +1,4 @@
-import type { Person, TeamMembership, WorkCard, CardAnswer } from '../lib/types';
+import type { Person, WorkCard, CardAnswer } from '../lib/types';
 
 const ORG = 'org-acme-na';
 
@@ -68,18 +68,6 @@ export const PEOPLE: Person[] = [
 export const ME: Person = PEOPLE[0];
 export const PERSON_BY_ID: Record<string, Person> = Object.fromEntries(PEOPLE.map((p) => [p.id, p]));
 
-/* ─────────────────────────────────────────────────────────────────
-   Team Memberships
-   ───────────────────────────────────────────────────────────────── */
-export const TEAM_MEMBERSHIPS: TeamMembership[] = [
-  { id: 'tm-me',  personId: 'p-me', teamId: 't-strat', role: 'lead',    startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-mc',  personId: 'p-mc', teamId: 't-prod',  role: 'lead',    startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-mr',  personId: 'p-mr', teamId: 't-eng',   role: 'manager', startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-pp',  personId: 'p-pp', teamId: 't-mktg',  role: 'lead',    startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-jw',  personId: 'p-jw', teamId: 't-sales', role: 'member',  startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-sk',  personId: 'p-sk', teamId: 't-cs',    role: 'lead',    startedAt: '2024-04-01T00:00:00Z' },
-  { id: 'tm-dk',  personId: 'p-dk', teamId: 't-eng',   role: 'manager', startedAt: '2024-04-01T00:00:00Z' },
-];
 
 /* ─────────────────────────────────────────────────────────────────
    Work Cards — one per person.

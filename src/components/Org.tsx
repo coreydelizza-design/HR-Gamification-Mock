@@ -1,6 +1,6 @@
 import type {
   Organization, OrganizationCard, OrgMetric, OrgRisk, OrgDependency,
-  OrgNeed, OrgOffer, SuccessAgreement, OrgMeeting, OrgMeetingFit,
+  OrgNeed, OrgOffer, SuccessAgreement,
   RoleCard, Person, WorkCard, CardAnswer, AgreementStatus, MeetingFitStatus,
   DependencyHealth, FreshnessState, OrgSuccessAnalysis, ReadinessLevel,
   OrgCommercialProfile, RevenueRole, Currency, CommercialMetric,
@@ -414,40 +414,6 @@ export function SuccessAgreementCard({
         <span className="row-card-meta">next review {agreement.nextReviewAt.slice(0, 10)}</span>
         <OrgFreshnessBadge state={agreement.freshness} />
       </div>
-    </div>
-  );
-}
-
-export function MeetingFitCard({
-  meeting, fit, orgNames, onOpen,
-}: { meeting: OrgMeeting; fit: OrgMeetingFit | undefined; orgNames: string[]; onOpen: (id: string) => void }) {
-  const missing = fit?.requiredInputs.filter((i) => !i.received).length ?? 0;
-  return (
-    <div className="row-card" onClick={() => onOpen(meeting.id)}>
-      <div className="row-card-head">
-        <span className="row-card-title">{meeting.title}</span>
-        {fit && <MeetingFitBadge status={fit.status} />}
-      </div>
-      <div className="row-card-body">{meeting.agendaSummary}</div>
-      <div className="row-card-foot">
-        <span className="row-card-meta">{orgNames.join(' ↔ ')}</span>
-        <span className="row-card-meta">{new Date(meeting.startsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {meeting.durationMinutes}m</span>
-        {missing > 0 && <span className="freshness fr-stale">{missing} input{missing === 1 ? '' : 's'} missing</span>}
-        {fit && !fit.decisionOwnerPresent && <span className="freshness fr-aging">no decision owner</span>}
-      </div>
-    </div>
-  );
-}
-
-export function NudgeCard({ message, kind, onClick }: { message: string; kind: string; onClick?: () => void }) {
-  return (
-    <div className="home-list-item" style={{ gridTemplateColumns: '36px 1fr auto', cursor: onClick ? 'pointer' : 'default' }} onClick={onClick}>
-      <div style={{ width: 36, height: 36, borderRadius: 8, background: 'var(--warning-soft)', color: 'var(--warning-text)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600 }}>○</div>
-      <div>
-        <div className="hli-title">{kind.replace(/_/g, ' ')}</div>
-        <div className="hli-sub">{message}</div>
-      </div>
-      <span className="hli-action">{onClick ? 'Open →' : 'Advisory'}</span>
     </div>
   );
 }

@@ -227,14 +227,6 @@ export interface CardAnswer {
   lastUpdatedAt: string;
 }
 
-export interface VisibilityRule {
-  id: string;
-  cardId: string;
-  cardKind: CardKind;
-  sectionKey?: CardSectionKey;  // null = whole card
-  scope: VisibilityScope;
-  audienceTeamIds?: string[];   // for "partners" scope
-}
 
 
 /* ─────────────────────────────────────────────────────────────────
@@ -290,24 +282,6 @@ export interface MeetingFitBrief {
 /* ─────────────────────────────────────────────────────────────────
    Collaboration plumbing — needs / offers / dependencies
    ───────────────────────────────────────────────────────────────── */
-export interface CollaborationNeed {
-  id: string;
-  ownerTeamId: string;
-  needFromTeamId: string;
-  description: string;
-  cadence: string;              // "weekly", "ad-hoc", etc.
-  status: 'open' | 'covered' | 'gap';
-}
-
-export interface CollaborationOffer {
-  id: string;
-  ownerTeamId: string;
-  offeredToTeamId: string;
-  description: string;
-  sla: string;                  // "5 business days", etc.
-  active: boolean;
-}
-
 export interface Dependency {
   id: string;
   fromTeamId: string;
@@ -420,27 +394,6 @@ export interface Badge {
 /* ─────────────────────────────────────────────────────────────────
    Nudges + freshness
    ───────────────────────────────────────────────────────────────── */
-export type NudgeKind =
-  | 'stale_card'
-  | 'pre_meeting_refresh'
-  | 'agreement_review_due'
-  | 'handoff_gap'
-  | 'team_readiness';
-
-export interface Nudge {
-  id: string;
-  kind: NudgeKind;
-  audience: 'person' | 'team' | 'manager';
-  audienceId: string;           // personId / teamId / managerPersonId
-  message: string;              // advisory, never punitive
-  triggeredAt: string;
-  acknowledgedAt?: string;
-  // Optional links to the affected artifacts.
-  cardId?: string;
-  meetingId?: string;
-  agreementId?: string;
-}
-
 export interface FreshnessSignal {
   id: string;
   subjectKind: 'work_card' | 'team_card' | 'agreement';

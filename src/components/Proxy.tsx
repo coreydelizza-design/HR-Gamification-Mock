@@ -13,7 +13,7 @@ import {
 
 import { roleBandOfPerson, ROLE_CARD_BY_PERSON } from '../data/roleCards';
 import { ROLE_BAND_LABEL } from '../data/rateCard';
-import { PERSON_BY_ID, ME } from '../data/people';
+import { PERSON_BY_ID } from '../data/people';
 import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
 import { useOrgData, setAttendanceMode } from '../lib/demoStore';
 import { orgName } from '../lib/orgData';
@@ -364,7 +364,6 @@ export function OpportunitySummary({
   );
 }
 
-export const VIEWER_ID = ME.id;
 
 /* re-exports for callers */
 export { agreementGapMeeting, defaultRequirement, canSetRequirement };

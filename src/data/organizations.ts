@@ -347,8 +347,6 @@ export const ORGANIZATIONS: Organization[] = [
 export const ORG_BY_ID: Record<string, Organization> =
   Object.fromEntries(ORGANIZATIONS.map((o) => [o.id, o]));
 
-export const TIER1_ORGS = ORGANIZATIONS.filter((o) => o.tier === 1);
-export const TIER2_ORGS = ORGANIZATIONS.filter((o) => o.tier === 2);
 
 export const ORG_CATEGORY_LABEL: Record<Organization['category'], string> = {
   leadership: 'Leadership',

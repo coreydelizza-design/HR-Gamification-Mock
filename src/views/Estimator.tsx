@@ -2,7 +2,7 @@ import { useState } from 'react';
 import type { RoleBand, MeetingCadence, ViewKey } from '../lib/types';
 import { useOrgData } from '../lib/demoStore';
 import { estimateRoster, money, moneyAnnual } from '../lib/proxyEngine';
-import { ROLE_BAND_LABEL, ROLE_BAND_ORDER } from '../data/rateCard';
+import { ROLE_BAND_LABEL, ROLE_BAND_ORDER } from '../lib/dataSource';
 import { OpportunitySummary } from '../components/Proxy';
 
 interface Props {

@@ -337,11 +337,6 @@ export function createMeeting(input: Omit<OrgMeeting, 'id'>): string {
   commit({ ...state, meetings: [...state.meetings, meeting], modified: true });
   return id;
 }
-/** Patch a composed meeting (seeded meetings are read-only). */
-export function updateMeeting(id: string, patch: Partial<OrgMeeting>): void {
-  const meetings = state.meetings.map((m) => (m.id === id ? { ...m, ...patch } : m));
-  commit({ ...state, meetings, modified: true });
-}
 
 /* ── rate card (the seat, never the person) ───────────────────────── */
 /** Rebuild the enterprise rate card from base salaries + multiplier; marks it edited. */

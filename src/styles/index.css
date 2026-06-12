@@ -216,7 +216,6 @@ button { font-family: inherit; }
 
 
 /* Trend chart visuals — used by Org Insights aggregate charts. */
-.trend-card { padding: 18px 22px; }
 .trend-legend { display: flex; gap: 14px; margin-top: 10px; font-size: 11px; color: var(--muted); }
 .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 5px; }
 
@@ -241,8 +240,6 @@ button { font-family: inherit; }
   white-space: nowrap;
 }
 .spine-node:hover { background: var(--surface); border-color: var(--rule); }
-.spine-node-future { cursor: default; opacity: 0.55; }
-.spine-node-future:hover { background: transparent; border-color: transparent; }
 .spine-index {
   font-family: 'JetBrains Mono', monospace;
   font-size: 9.5px; color: var(--muted);
@@ -281,13 +278,6 @@ button { font-family: inherit; }
 .fr-aging   { background: var(--warning-soft); color: var(--warning-text); }
 .fr-stale   { background: var(--danger-soft);  color: var(--danger-text);  }
 .fr-unknown { background: var(--surface-soft); color: var(--muted); }
-
-/* Team mark — small monochrome team initials chip */
-.team-mark {
-  display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 6px; font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-}
 
 /* Tabs */
 .tab-strip { display: flex; gap: 2px; border-bottom: 1px solid var(--rule); margin-bottom: 18px; }
@@ -335,20 +325,9 @@ button { font-family: inherit; }
 .row-card-body { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
 .row-card-foot { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; align-items: center; }
 
-/* Card section (work card display) */
-.card-section-block {
-  border-top: 1px solid var(--rule-soft);
-  padding: 14px 0;
-}
-.card-section-block:first-child { border-top: none; }
-.card-section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; gap: 12px; }
-.card-section-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--ink); font-family: 'JetBrains Mono', monospace; }
-.card-section-meta  { font-size: 10.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; }
-.card-section-body  { font-size: 13px; line-height: 1.65; color: var(--ink); }
 .card-section-empty { font-size: 12.5px; color: var(--subtle); font-style: italic; }
 
 /* Meeting fit detail panel */
-.fit-status { display: flex; align-items: center; gap: 10px; font-family: 'Fraunces', serif; font-size: 18px; font-weight: 500; }
 .fit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
 @media (max-width: 880px) { .fit-grid { grid-template-columns: 1fr; } }
 .fit-cell { background: var(--surface-soft); border: 1px solid var(--rule); border-radius: 10px; padding: 14px 16px; }
@@ -382,7 +361,6 @@ button { font-family: inherit; }
 .metric-tile-label { font-size: 11px; color: var(--muted); font-weight: 500; margin-bottom: 7px; }
 .metric-tile-value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; line-height: 1; }
 .metric-tile-delta { font-size: 11px; margin-top: 5px; color: var(--muted); }
-.metric-tile-up   { color: var(--success); }
 .metric-tile-flat { color: var(--muted); }
 .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 22px; }
 
@@ -423,19 +401,7 @@ button { font-family: inherit; }
   padding: 5px 9px; border-radius: 999px;
   font-size: 11px; font-weight: 500;
 }
-.badge-chip .bc-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
 .badge-chip .bc-label { color: var(--ink); }
-
-/* Engagement matrix (kept from prior phase, retained) */
-.matrix-axis-label { font-size: 9.5px; color: var(--muted); font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.08em; }
-.matrix-row { display: flex; justify-content: space-between; padding: 0 4px 4px; }
-.matrix-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.matrix-cell { padding: 16px 14px; border-radius: 10px; border: 1px solid; text-align: center; transition: transform 120ms; }
-.matrix-cell:hover { transform: translateY(-1px); }
-.matrix-count { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 500; line-height: 1; }
-.matrix-label { font-size: 11px; font-weight: 600; margin-top: 4px; }
-.matrix-desc { font-size: 10.5px; opacity: 0.75; margin-top: 3px; line-height: 1.4; }
-.matrix-pct { font-size: 10px; opacity: 0.65; margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
 
 
 /* ═══════════════════════════════════════════════════════════════
@@ -583,7 +549,6 @@ button { font-family: inherit; }
 .btn-sm { padding: 5px 10px; font-size: 11.5px; border-radius: 7px; }
 
 /* Edit toggle on detail header */
-.edit-toggle { display: inline-flex; align-items: center; gap: 6px; }
 
 /* Section edit frame */
 .sec-edit { background: var(--surface-soft); border: 1px solid var(--rule); border-radius: 10px; padding: 16px; }
@@ -860,11 +825,6 @@ button { font-family: inherit; }
   .app { grid-template-columns: 1fr; }
   .sidebar { position: static; max-height: none; }
   .hero { grid-template-columns: 1fr; }
-  .hero-side { border-left: none; border-top: 1px solid var(--rule); }
-  .mtgs { grid-template-columns: 1fr; }
-  .team-grid { grid-template-columns: 1fr; }
-  .dodont { grid-template-columns: 1fr; }
-  .basics { grid-template-columns: 1fr; }
   .metrics-grid { grid-template-columns: 1fr 1fr; }
   .home-grid { grid-template-columns: 1fr; }
   .est-grid { grid-template-columns: 1fr; }

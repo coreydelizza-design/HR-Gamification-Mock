@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { useOrgData } from '../lib/demoStore';
-import { ORG_DEPENDENCIES } from '../data/orgDependencies';
-import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
-import { ORG_MEETING_FITS } from '../data/meetingFit';
-import { ORG_PACK_BY_ID } from '../data/orgPacks';
+import { ORG_DEPENDENCIES } from '../lib/dataSource';
+import { SUCCESS_AGREEMENTS } from '../lib/dataSource';
+import { ORG_MEETING_FITS } from '../lib/dataSource';
+import { ORG_PACK_BY_ID } from '../lib/dataSource';
 import { successFor, orgName } from '../lib/orgData';
+import { cardCoveragePct, revenueClarityPct, pct, pctRaw } from '../lib/enterpriseMetrics';
 import { OpportunitySummary } from '../components/Proxy';
 
 interface Props {
@@ -17,7 +18,7 @@ export default function OrgInsights({ onOpenOrg, onOpenAgreement, onOpenMeeting 
   const { organizations: ORGANIZATIONS, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
   const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), [ORGANIZATIONS]);
 
-  const cardCoverage = Math.round(ORGANIZATIONS.reduce((s, o) => s + ((ORG_CARD_BY_ORG[o.id]?.publishedSections.length ?? 0) / 13), 0) / ORGANIZATIONS.length * 100);
+  const cardCoverage = cardCoveragePct(ORGANIZATIONS, ORG_CARD_BY_ORG);
   const freshMix = {
     fresh: ORGANIZATIONS.filter((o) => o.freshness === 'fresh').length,
     aging: ORGANIZATIONS.filter((o) => o.freshness === 'aging').length,
@@ -41,7 +42,7 @@ export default function OrgInsights({ onOpenOrg, onOpenAgreement, onOpenMeeting 
     return r === 'pl_owner' || r === 'revenue_generating';
   });
   const revClear = revenueResponsible.filter(({ a }) => a.successReadinessScore >= 80).length;
-  const revClarityPct = revenueResponsible.length ? Math.round(revClear / revenueResponsible.length * 100) : 0;
+  const revClarityPct = revenueClarityPct(revClear, revenueResponsible.length);
   const revNeedsWork = revenueResponsible.filter(({ org, a }) => org.freshness === 'stale' || a.successReadinessScore < 70);
 
   const dimPct = (a: ReturnType<typeof successFor>, key: string) => a?.dimensions.find((d) => d.key === key)?.summary.pct ?? 100;
@@ -105,9 +106,9 @@ export default function OrgInsights({ onOpenOrg, onOpenAgreement, onOpenMeeting 
       <div className="home-card" style={{ marginBottom: 18 }}>
         <div className="home-card-head"><div className="home-card-title">Card freshness mix</div><span className="home-card-meta">36 organizations</span></div>
         <div style={{ display: 'flex', height: 12, borderRadius: 999, overflow: 'hidden', border: '1px solid var(--rule)' }}>
-          <div style={{ width: `${freshMix.fresh / ORGANIZATIONS.length * 100}%`, background: 'var(--success)' }} title={`${freshMix.fresh} fresh`} />
-          <div style={{ width: `${freshMix.aging / ORGANIZATIONS.length * 100}%`, background: 'var(--warning)' }} title={`${freshMix.aging} aging`} />
-          <div style={{ width: `${freshMix.stale / ORGANIZATIONS.length * 100}%`, background: 'var(--danger)' }} title={`${freshMix.stale} stale`} />
+          <div style={{ width: `${pctRaw(freshMix.fresh, ORGANIZATIONS.length)}%`, background: 'var(--success)' }} title={`${freshMix.fresh} fresh`} />
+          <div style={{ width: `${pctRaw(freshMix.aging, ORGANIZATIONS.length)}%`, background: 'var(--warning)' }} title={`${freshMix.aging} aging`} />
+          <div style={{ width: `${pctRaw(freshMix.stale, ORGANIZATIONS.length)}%`, background: 'var(--danger)' }} title={`${freshMix.stale} stale`} />
         </div>
         <div className="trend-legend">
           <span><span className="legend-dot" style={{ background: 'var(--success)' }} />{freshMix.fresh} fresh</span>
@@ -177,7 +178,7 @@ export default function OrgInsights({ onOpenOrg, onOpenAgreement, onOpenMeeting 
               <span className="coverage-row-label">{ORG_PACK_BY_ID[packId]?.name ?? packId}</span>
               <span className="coverage-row-detail">{ORG_PACK_BY_ID[packId]?.description}</span>
               <span className="coverage-row-pct">{count} orgs</span>
-              <span className="coverage-row-pct">{Math.round(count / ORGANIZATIONS.length * 100)}%</span>
+              <span className="coverage-row-pct">{pct(count, ORGANIZATIONS.length)}%</span>
             </div>
           ))}
         </div>

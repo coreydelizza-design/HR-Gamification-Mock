@@ -39,9 +39,18 @@ export const DEFAULT_BASES: Record<RoleBand, number> = {
 export const DEFAULT_MULTIPLIER = 1.35;
 const HOURS_PER_YEAR = 2080;
 
+/** hourly = annualBase × multiplier ÷ 2080. The single source for the rate formula. */
+export function deriveHourly(annualBase: number, multiplier: number): number {
+  return Math.round((annualBase * multiplier) / HOURS_PER_YEAR);
+}
+/** half-hour = hourly ÷ 2. */
+export function deriveHalfHour(hourly: number): number {
+  return Math.round(hourly / 2);
+}
+
 function deriveBand(annualBase: number, multiplier: number): RateBand {
-  const hourly = Math.round((annualBase * multiplier) / HOURS_PER_YEAR);
-  return { annualBase, hourly, halfHour: Math.round(hourly / 2) };
+  const hourly = deriveHourly(annualBase, multiplier);
+  return { annualBase, hourly, halfHour: deriveHalfHour(hourly) };
 }
 
 /** Rebuild a full rate card from base salaries + multiplier. The single source of

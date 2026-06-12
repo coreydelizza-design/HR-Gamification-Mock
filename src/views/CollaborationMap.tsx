@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import type { CollabEdge, OrganizationCategory } from '../lib/types';
-import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { ORG_CATEGORY_LABEL } from '../lib/dataSource';
 import { useOrgData } from '../lib/demoStore';
-import { COLLAB_EDGES } from '../data/collaborationMap';
-import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
+import { COLLAB_EDGES } from '../lib/dataSource';
+import { SUCCESS_AGREEMENT_BY_ID } from '../lib/dataSource';
 import { crossFor, orgName } from '../lib/orgData';
 import {
   DependencyHealthBadge, StrengthChip, CategoryTag, AgreementStatusBadge,

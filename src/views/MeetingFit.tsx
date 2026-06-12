@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { MeetingFitStatus } from '../lib/types';
-import { ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
+import { ORG_MEETING_FIT_BY_MEETING } from '../lib/dataSource';
 import { orgName, DEMO_NOW } from '../lib/orgData';
 import { meetingFitLabel } from '../lib/readiness';
 import { useOrgData } from '../lib/demoStore';

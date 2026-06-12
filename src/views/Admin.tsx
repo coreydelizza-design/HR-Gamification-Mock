@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { RoleBand, Currency, ViewKey } from '../lib/types';
-import { ENTERPRISE } from '../data/enterprise';
+import { ENTERPRISE } from '../lib/dataSource';
 import {
   useOrgData, resetDemo, renameEnterprise, exportSession, importSession,
   saveSnapshot, listSnapshots, restoreSnapshot, updateRateCard,
 } from '../lib/demoStore';
-import { ORG_PACKS } from '../data/orgPacks';
-import { ROLE_BAND_LABEL, ROLE_BAND_ORDER, DEFAULT_MULTIPLIER } from '../data/rateCard';
+import { ORG_PACKS } from '../lib/dataSource';
+import { ROLE_BAND_LABEL, ROLE_BAND_ORDER, DEFAULT_MULTIPLIER, deriveHourly, deriveHalfHour } from '../lib/dataSource';
 import { money } from '../lib/proxyEngine';
 
 const ORG_CARD_SECTIONS = [
@@ -51,7 +51,7 @@ export default function Admin({ onNewOrg, onNavigate }: { onNewOrg: () => void; 
     ROLE_BAND_ORDER.reduce((acc, b) => { acc[b] = rateCard.bands[b].annualBase; return acc; }, {} as Record<RoleBand, number>));
   const [multiplier, setMultiplier] = useState(rateCard.loadedCostMultiplier);
   const [currency, setCurrency] = useState<Currency>(rateCard.currency);
-  const derivedHourly = (band: RoleBand) => Math.round((bases[band] * multiplier) / 2080);
+  const derivedHourly = (band: RoleBand) => deriveHourly(bases[band], multiplier);
 
   const onReset = () => {
     if (window.confirm('Reset all demo data to the pristine seed? Any unsaved edits and created organizations will be discarded.')) {
@@ -218,7 +218,7 @@ export default function Admin({ onNewOrg, onNavigate }: { onNewOrg: () => void; 
                   <span>{ROLE_BAND_LABEL[band]}</span>
                   <span><input className="inp" type="number" step="1000" style={{ width: 130 }} value={bases[band]} onChange={(e) => setBases((b) => ({ ...b, [band]: Number(e.target.value) || 0 }))} /></span>
                   <span className="mono">{money(derivedHourly(band), currency)}</span>
-                  <span className="mono">{money(Math.round(derivedHourly(band) / 2), currency)}</span>
+                  <span className="mono">{money(deriveHalfHour(derivedHourly(band)), currency)}</span>
                 </div>
               ))}
             </div>

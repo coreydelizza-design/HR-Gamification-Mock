@@ -152,7 +152,3 @@ export const ORG_PACKS: OrgPack[] = [
 
 export const ORG_PACK_BY_ID: Record<string, OrgPack> =
   Object.fromEntries(ORG_PACKS.map((p) => [p.id, p]));
-
-/** The enterprise-default pack used when an org's pack cannot be resolved. */
-export const DEFAULT_ORG_PACK: OrgPack =
-  ORG_PACK_BY_ID['pack-operations'] ?? ORG_PACKS[0];

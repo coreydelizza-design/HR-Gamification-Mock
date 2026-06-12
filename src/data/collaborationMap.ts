@@ -363,6 +363,3 @@ export const COLLAB_EDGES: CollabEdge[] = [
     risk: 'Unresolved cross-org tradeoffs leave dependent programs without a decision owner.',
   },
 ];
-
-export const COLLAB_EDGE_BY_ID: Record<string, CollabEdge> =
-  Object.fromEntries(COLLAB_EDGES.map((e) => [e.id, e]));

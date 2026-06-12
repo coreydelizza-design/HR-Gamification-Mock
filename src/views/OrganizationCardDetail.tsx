@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import type { RequiredInput, OrgCardSectionKey } from '../lib/types';
-import { ORG_CATEGORY_LABEL } from '../data/organizations';
+import { ORG_CATEGORY_LABEL } from '../lib/dataSource';
 import { useOrgData } from '../lib/demoStore';
-import { ORG_DEPENDENCIES } from '../data/orgDependencies';
-import { ORG_NEEDS, ORG_OFFERS } from '../data/orgNeedsOffers';
-import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
-import { ROLE_CARDS_BY_ORG, PEOPLE_BY_ORG } from '../data/roleCards';
-import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS } from '../data/people';
+import { ORG_DEPENDENCIES } from '../lib/dataSource';
+import { ORG_NEEDS, ORG_OFFERS } from '../lib/dataSource';
+import { SUCCESS_AGREEMENTS } from '../lib/dataSource';
+import { ROLE_CARDS_BY_ORG, PEOPLE_BY_ORG } from '../lib/dataSource';
+import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS } from '../lib/dataSource';
 import { successFor, orgName } from '../lib/orgData';
 import { levelColor } from '../lib/readiness';
 import { Ring } from '../components/Shared';

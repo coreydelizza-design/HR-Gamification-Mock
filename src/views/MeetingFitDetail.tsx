@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
-import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
-import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS, ME } from '../data/people';
+import { ORG_MEETING_FIT_BY_MEETING } from '../lib/dataSource';
+import { SUCCESS_AGREEMENT_BY_ID } from '../lib/dataSource';
+import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS, ME } from '../lib/dataSource';
 import { orgName } from '../lib/orgData';
 import { formatMeetingTime } from '../lib/readiness';
 import { useOrgData, meetingByIdAll } from '../lib/demoStore';

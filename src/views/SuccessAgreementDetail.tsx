@@ -1,4 +1,4 @@
-import { SUCCESS_AGREEMENT_BY_ID, SUCCESS_AGREEMENT_SECTIONS } from '../data/successAgreements';
+import { SUCCESS_AGREEMENT_BY_ID, SUCCESS_AGREEMENT_SECTIONS } from '../lib/dataSource';
 import { useOrgData } from '../lib/demoStore';
 import { crossFor, orgName } from '../lib/orgData';
 import { IconArrowLeft } from '../components/Icons';

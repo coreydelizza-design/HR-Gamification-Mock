@@ -426,6 +426,3 @@ export const ORG_DEPENDENCIES: OrgDependency[] = [
     governingAgreementId: 'sa-ps-cs',
   },
 ];
-
-export const ORG_DEPENDENCY_BY_ID: Record<string, OrgDependency> =
-  Object.fromEntries(ORG_DEPENDENCIES.map((d) => [d.id, d]));

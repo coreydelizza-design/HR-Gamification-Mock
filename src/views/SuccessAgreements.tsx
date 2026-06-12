@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import type { AgreementStatus } from '../lib/types';
-import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
+import { SUCCESS_AGREEMENTS } from '../lib/dataSource';
 import { useOrgData } from '../lib/demoStore';
 import { orgName } from '../lib/orgData';
 import { agreementStatusLabel } from '../lib/readiness';

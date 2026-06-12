@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import type { Person, ViewKey } from '../lib/types';
 import { useOrgData } from '../lib/demoStore';
-import { ORG_DEPENDENCIES } from '../data/orgDependencies';
-import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
-import { ORG_MEETINGS, ORG_MEETING_FITS, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
+import { ORG_DEPENDENCIES } from '../lib/dataSource';
+import { SUCCESS_AGREEMENTS } from '../lib/dataSource';
+import { ORG_MEETINGS, ORG_MEETING_FITS, ORG_MEETING_FIT_BY_MEETING } from '../lib/dataSource';
 import { successFor, orgName } from '../lib/orgData';
 import { levelColor } from '../lib/readiness';
 import { classifyMeeting, inviteesFor, canDelegate, marginalCost, money } from '../lib/proxyEngine';
-import { roleBandOfPerson } from '../data/roleCards';
+import { cardCoveragePct, revenueClarityPct, pct } from '../lib/enterpriseMetrics';
+import { roleBandOfPerson } from '../lib/dataSource';
 import { Bar, StatusPill } from '../components/Shared';
 import { AgreementStatusBadge, MeetingFitBadge } from '../components/Org';
 
@@ -59,23 +60,23 @@ export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onO
   }, [user.id, rateCard]);
 
   // Six enterprise readiness meters
-  const cardCoverage = Math.round(ORGANIZATIONS.reduce((s, o) => s + ((ORG_CARD_BY_ORG[o.id]?.publishedSections.length ?? 0) / 13), 0) / ORGANIZATIONS.length * 100);
+  const cardCoverage = cardCoveragePct(ORGANIZATIONS, ORG_CARD_BY_ORG);
   const agrPublished = SUCCESS_AGREEMENTS.filter((a) => a.status === 'published').length;
-  const agreementCoverage = Math.round(agrPublished / SUCCESS_AGREEMENTS.length * 100);
+  const agreementCoverage = pct(agrPublished, SUCCESS_AGREEMENTS.length);
   const fitReady = ORG_MEETING_FITS.filter((f) => f.status === 'ready' || f.status === 'decision_ready').length;
-  const meetingFitReadiness = Math.round(fitReady / ORG_MEETING_FITS.length * 100);
+  const meetingFitReadiness = pct(fitReady, ORG_MEETING_FITS.length);
   const orgsWithHandoff = ORGANIZATIONS.filter((o) => (ORG_CARD_BY_ORG[o.id]?.handoffRules.length ?? 0) > 0).length;
-  const handoffClarity = Math.round(orgsWithHandoff / ORGANIZATIONS.length * 100);
+  const handoffClarity = pct(orgsWithHandoff, ORGANIZATIONS.length);
   const depHealthy = ORG_DEPENDENCIES.filter((d) => d.health === 'healthy').length;
-  const dependencyHealth = Math.round(depHealthy / ORG_DEPENDENCIES.length * 100);
+  const dependencyHealth = pct(depHealthy, ORG_DEPENDENCIES.length);
   const freshCount = ORGANIZATIONS.filter((o) => o.freshness === 'fresh').length;
-  const freshness = Math.round(freshCount / ORGANIZATIONS.length * 100);
+  const freshness = pct(freshCount, ORGANIZATIONS.length);
   const revenueResponsible = analyses.filter(({ org }) => {
     const r = ORG_CARD_BY_ORG[org.id]?.commercial?.revenueRole;
     return r === 'pl_owner' || r === 'revenue_generating';
   });
   const revClear = revenueResponsible.filter(({ a }) => a.successReadinessScore >= 80).length;
-  const revenueClarity = revenueResponsible.length ? Math.round(revClear / revenueResponsible.length * 100) : 0;
+  const revenueClarity = revenueClarityPct(revClear, revenueResponsible.length);
 
   const meters: Array<{ label: string; pct: number; rationale: string }> = [
     { label: 'Org-card coverage', pct: cardCoverage, rationale: 'Average of published sections across all 36 organizations.' },

@@ -1,4 +1,4 @@
-import type { Person, Team, ReadinessLevel, ReadinessSummary, FreshnessSignal } from '../lib/types';
+import type { Person, ReadinessLevel, ReadinessSummary, FreshnessSignal } from '../lib/types';
 import { levelColor, levelSoftBg, levelTextColor } from '../lib/readiness';
 
 /* ─────────────────────────────────────────────────────────────────
@@ -34,21 +34,6 @@ export function Avatar({ person, size = 32 }: { person: Person; size?: number })
   );
 }
 
-export function TeamMark({ team, size = 28 }: { team: Team; size?: number }) {
-  return (
-    <div
-      className="team-mark"
-      style={{
-        width: size, height: size,
-        fontSize: Math.round(size * 0.34),
-        background: VISUAL_BG[team.visualKey],
-        color: VISUAL_FG[team.visualKey],
-      }}
-    >
-      {team.shortName.slice(0, 2).toUpperCase()}
-    </div>
-  );
-}
 
 /* ─────────────────────────────────────────────────────────────────
    Bar — generic progress bar.

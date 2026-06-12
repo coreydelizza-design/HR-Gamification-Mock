@@ -432,9 +432,3 @@ export const ORG_OFFERS: OrgOffer[] = [
     active: false,
   },
 ];
-
-export const ORG_NEEDS_BY_ID: Record<string, OrgNeed> =
-  Object.fromEntries(ORG_NEEDS.map((n) => [n.id, n]));
-
-export const ORG_OFFERS_BY_ID: Record<string, OrgOffer> =
-  Object.fromEntries(ORG_OFFERS.map((o) => [o.id, o]));
