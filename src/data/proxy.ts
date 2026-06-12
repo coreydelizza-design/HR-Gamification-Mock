@@ -51,6 +51,34 @@ export const MEETING_META: Record<string, MeetingMeta> = {
     ],
   },
 
+  /* 10 · Q3 Delivery Risk Review — 4-org composition (standard) */
+  'm-q3-risk': {
+    cadence: 'weekly',
+    inviteePersonIds: ['p-mr', 'p-sk', 'p-me', 'p-dk'],
+    agenda: [
+      { topic: 'Re-baseline two at-risk milestones', kind: 'decision', exercisesDecisionRight: true, needBy: { date: '2026-06-13', reason: 'release cutoff is end of week' } },
+      { topic: 'Review the cross-org delivery risk register', kind: 'input_review' },
+      { topic: 'Status on open security findings', kind: 'status' },
+    ],
+    inputNeedBy: {
+      'Open security findings affecting the release': { date: '2026-06-12', reason: 'must clear before the release decision' },
+      'Reliability telemetry for at-risk services': { date: '2026-06-12' },
+    },
+  },
+
+  /* 11 · Major Account Escalation — 5-org, escalation type (people-only) */
+  'm-major-escalation': {
+    cadence: 'one_time',
+    inviteePersonIds: ['p-jw', 'p-sk', 'p-mr', 'p-me', 'p-dk'],
+    agenda: [
+      { topic: 'Walk the escalation trigger and account exposure', kind: 'escalation' },
+      { topic: 'Decide remediation commitments and owners', kind: 'decision', exercisesDecisionRight: true, needBy: { date: '2026-06-11', reason: 'account decision needed within 48 hours' } },
+    ],
+    inputNeedBy: {
+      'Open Sev tickets and SLA breaches': { date: '2026-06-10', reason: 'needed to size the remediation' },
+    },
+  },
+
   /* 3 · Product ↔ Engineering Weekly Sync — DUPLICATE of m-prod-eng */
   'm-prod-eng-sync': {
     cadence: 'weekly',

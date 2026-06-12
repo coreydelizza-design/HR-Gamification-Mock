@@ -789,6 +789,71 @@ button { font-family: inherit; }
 .estimator-tile-arrow { font-size: 20px; color: var(--accent); }
 
 /* ═══════════════════════════════════════════════════════════════
+   V3.5c — Meeting composition + expectations brief
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Selected-org chips (category tint + readiness dot) */
+.org-chip-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.org-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface-soft); }
+.org-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.org-chip-cat { font-size: 9px; color: var(--subtle); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* Meeting Fit list org chips */
+.mtg-org-chips { display: inline-flex; flex-wrap: wrap; gap: 5px; }
+.mtg-org-chip { font-size: 10px; padding: 2px 7px; border-radius: 5px; background: var(--surface-soft); border: 1px solid var(--rule); color: var(--muted); }
+.mtg-org-more { color: var(--subtle); }
+
+/* Org-set strip */
+.orgset { display: flex; flex-direction: column; gap: 10px; }
+.orgset-summary { font-size: 12.5px; font-weight: 500; }
+.orgset-agg { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pair-list { display: flex; flex-direction: column; gap: 2px; }
+.pair-row { display: grid; grid-template-columns: minmax(140px, 1.2fr) auto 2fr; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--rule-soft); }
+.pair-orgs { font-size: 12.5px; font-weight: 500; }
+.pair-status { font-size: 9.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 1px 8px; border-radius: 999px; justify-self: start; }
+.ps-missing { background: var(--danger-soft); color: var(--danger-text); }
+.ps-refresh { background: var(--warning-soft); color: var(--warning-text); }
+.ps-soft { background: var(--surface-soft); color: var(--muted); border: 1px solid var(--rule); }
+.ps-ok { background: var(--success-soft); color: var(--success-text); }
+.pair-rationale { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+/* Escalation owners */
+.esc-panel { border-color: var(--danger); }
+.esc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-top: 1px solid var(--rule-soft); }
+.esc-gap { background: var(--danger-soft); border-radius: 8px; padding: 9px 12px; }
+
+/* Expectations Brief */
+.brief-panel { border-color: var(--accent); }
+.brief-purpose { font-size: 13px; font-weight: 500; line-height: 1.55; padding: 10px 14px; background: var(--surface-soft); border-radius: 9px; margin-bottom: 12px; }
+.brief-orgs { display: flex; flex-direction: column; gap: 8px; }
+.brief-org { border: 1px solid var(--rule); border-radius: 9px; overflow: hidden; }
+.brief-org-head { display: flex; align-items: center; justify-content: space-between; width: 100%; background: var(--surface-soft); border: none; cursor: pointer; padding: 9px 13px; font-family: inherit; color: var(--ink); }
+.brief-org-name { font-family: 'Fraunces', serif; font-size: 13.5px; font-weight: 500; }
+.brief-org-toggle { font-size: 16px; color: var(--muted); }
+.brief-org-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 10px; }
+.brief-block-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); margin-bottom: 3px; }
+.brief-line { font-size: 12px; }
+.brief-key { display: inline-block; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--subtle); margin-right: 8px; }
+.brief-fresh { font-size: 10px; color: var(--subtle); }
+.brief-section { margin-top: 14px; }
+.brief-checklist { list-style: none; padding: 0; margin: 6px 0 0; display: flex; flex-direction: column; gap: 4px; }
+.brief-checklist li { font-size: 12px; line-height: 1.5; }
+.brief-caveats { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; }
+.brief-caveat { font-size: 11.5px; color: var(--warning-text); background: var(--warning-soft); border: 1px solid var(--warning); border-radius: 8px; padding: 8px 12px; line-height: 1.5; }
+.brief-source { font-size: 11px; color: var(--muted); font-style: italic; line-height: 1.5; margin-top: 12px; }
+
+/* Composer modal */
+.composer-modal { max-width: 1040px; }
+.composer-grid { display: grid; grid-template-columns: 360px 1fr; gap: 22px; }
+.composer-form { display: flex; flex-direction: column; gap: 12px; }
+.composer-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.composer-preview { border-left: 1px solid var(--rule); padding-left: 22px; max-height: 70vh; overflow-y: auto; }
+.composer-preview-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.composer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; border-top: 1px solid var(--rule); padding-top: 14px; }
+.agenda-editor { display: flex; flex-direction: column; gap: 8px; }
+.agenda-edit-row { display: grid; grid-template-columns: 1fr 130px 140px auto; gap: 6px; align-items: center; }
+
+/* ═══════════════════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 880px) {
@@ -808,4 +873,9 @@ button { font-family: inherit; }
   .roster-head span:nth-child(5), .roster-row > span:nth-child(5) { grid-column: 1 / -1; }
   .driver-row { grid-template-columns: 1fr auto; }
   .driver-row .driver-rationale { grid-column: 1 / -1; }
+  .composer-grid { grid-template-columns: 1fr; }
+  .composer-preview { border-left: none; border-top: 1px solid var(--rule); padding-left: 0; padding-top: 16px; max-height: none; }
+  .pair-row { grid-template-columns: 1fr auto; }
+  .pair-row .pair-rationale { grid-column: 1 / -1; }
+  .agenda-edit-row { grid-template-columns: 1fr 1fr; }
 }

@@ -235,6 +235,7 @@ export default function Admin({ onNewOrg, onNavigate }: { onNewOrg: () => void; 
               <li><strong>Opportunity formula:</strong> recoverable = informational live attendance + duplicate meetings + async-eligible status meetings + agreement-gap escalations, annualized by cadence (weekly ×48, biweekly ×24, monthly ×12).</li>
               <li><strong>Seat, not person:</strong> a rate belongs to a role band, never to an individual. No compensation is ever stored or attributed to a named employee.</li>
               <li><strong>Estimates only:</strong> all figures are for decision-making, not payroll, and always render with a tilde (~).</li>
+              <li><strong>Expectations Brief:</strong> composed deterministically from published organization cards — purpose, per-org expectations (only agenda-relevant sections, matched on agenda item kind + keyword overlap), the success checklist, missing-agreement caveats, and a freshness source note. No LLM (an LLM-polished rendering is a Phase-5 extension). Markdown copy/download use the same composition function — single source.</li>
             </ul>
           </div>
         </>

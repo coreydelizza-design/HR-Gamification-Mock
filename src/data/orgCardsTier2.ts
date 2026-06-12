@@ -1180,7 +1180,7 @@ export const ORG_CARDS_TIER2: OrganizationCard[] = [
       contactChannel: 'Support queue',
       responseRhythm: 'First response within target SLA',
       cadenceStyle: 'async_first',
-      escalationPath: 'Support Manager → VP Customer Success',
+      escalationPath: '',
       decisionRights: ['Ticket prioritization'],
       approvalRights: ['Support process changes'],
     },

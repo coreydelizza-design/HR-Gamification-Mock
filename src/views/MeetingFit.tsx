@@ -1,28 +1,41 @@
 import { useState } from 'react';
 import type { MeetingFitStatus } from '../lib/types';
-import { ORG_MEETINGS, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
+import { ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
 import { orgName, DEMO_NOW } from '../lib/orgData';
 import { meetingFitLabel } from '../lib/readiness';
 import { useOrgData } from '../lib/demoStore';
 import {
-  classifyMeeting, meetingEconomics, recoverableOpportunity, assessUrgency, money,
+  classifyMeeting, isEscalation, meetingEconomics, recoverableOpportunity, assessUrgency, money,
 } from '../lib/proxyEngine';
 import { MeetingFitBadge } from '../components/Org';
 import { MeetingClassBadge, UrgencyBadge } from '../components/Proxy';
+import MeetingComposer from '../components/MeetingComposer';
 
 interface Props {
   onOpenMeeting: (id: string) => void;
+}
+
+function OrgChips({ ids }: { ids: string[] }) {
+  const shown = ids.slice(0, 4);
+  const extra = ids.length - shown.length;
+  return (
+    <span className="mtg-org-chips">
+      {shown.map((id) => <span key={id} className="mtg-org-chip">{orgName(id)}</span>)}
+      {extra > 0 && <span className="mtg-org-chip mtg-org-more">+{extra}</span>}
+    </span>
+  );
 }
 
 const STATUSES: Array<MeetingFitStatus | 'all'> = ['all', 'ready', 'decision_ready', 'async_recommended', 'at_risk', 'draft'];
 const WEEK_MS = 7 * 86_400_000;
 
 export default function MeetingFit({ onOpenMeeting }: Props) {
-  const { rateCard } = useOrgData(); // subscribe for live economics
+  const { rateCard, meetings } = useOrgData(); // subscribe for live economics + composed meetings
   const [status, setStatus] = useState<MeetingFitStatus | 'all'>('all');
+  const [composing, setComposing] = useState(false);
   const cur = rateCard.currency;
 
-  const ordered = [...ORG_MEETINGS].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
+  const ordered = [...meetings].sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());
   const filtered = ordered.filter((m) => {
     if (status === 'all') return true;
     return ORG_MEETING_FIT_BY_MEETING[m.id]?.status === status;
@@ -45,12 +58,13 @@ export default function MeetingFit({ onOpenMeeting }: Props) {
     <>
       <div className="section-head" style={{ marginBottom: 6 }}>
         <span className="display" style={{ fontSize: 24 }}>Meeting Fit</span>
-        <span className="section-meta">{ORG_MEETINGS.length} cross-org meetings · {atRisk} need attention</span>
+        <button className="btn-primary btn-sm" onClick={() => setComposing(true)}>+ Compose meeting</button>
       </div>
+      <div className="section-meta" style={{ marginBottom: 4 }}>{meetings.length} cross-org meetings · {atRisk} need attention</div>
       <div className="section-desc">
         A cross-org meeting is ready when the required organizations are represented, inputs exist, a decision owner
-        is present, and the format matches each org's norms. Each meeting now also carries a class, a cost estimate,
-        and its recoverable opportunity.
+        is present, and the format matches each org's norms. Each meeting carries a class, a cost estimate, its
+        recoverable opportunity, and a composed Expectations Brief. Compose a new one across any number of orgs.
       </div>
 
       {weekMeetings.length > 0 && (
@@ -84,14 +98,15 @@ export default function MeetingFit({ onOpenMeeting }: Props) {
                 <div className="row-card-head">
                   <span className="row-card-title">{m.title}</span>
                   <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+                    {isEscalation(m) && <span className="proxy-class pc-critical">Escalation</span>}
                     <MeetingClassBadge cls={cls} />
                     {fit && <MeetingFitBadge status={fit.status} />}
                     {anyOverdue ? <UrgencyBadge urgency="overdue" /> : anyDue ? <UrgencyBadge urgency="due_this_week" /> : null}
                   </span>
                 </div>
                 <div className="row-card-body">{m.agendaSummary}</div>
+                <div style={{ margin: '8px 0 2px' }}><OrgChips ids={m.participatingOrgIds} /></div>
                 <div className="row-card-foot">
-                  <span className="row-card-meta">{m.participatingOrgIds.map(orgName).join(' ↔ ')}</span>
                   <span className="row-card-meta">{new Date(m.startsAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {m.durationMinutes}m</span>
                   <span className="mono meeting-cost">{money(eco.costEstimate, cur)}</span>
                   <span className="mono meeting-recover">{money(eco.recoverableOpportunity, cur)} recoverable</span>
@@ -103,6 +118,8 @@ export default function MeetingFit({ onOpenMeeting }: Props) {
           })}
         </div>
       )}
+
+      {composing && <MeetingComposer onClose={() => setComposing(false)} onCreated={(id) => { setComposing(false); onOpenMeeting(id); }} />}
     </>
   );
 }

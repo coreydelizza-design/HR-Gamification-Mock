@@ -4,13 +4,13 @@ import type {
   AttendanceMode, RoleBand, Urgency,
 } from '../lib/types';
 import {
-  classifyMeeting, inviteesFor, meetingEconomics, recoverableOpportunity,
+  classifyMeeting, metaOf, inviteesFor, meetingEconomics, recoverableOpportunity,
   buildRemitDigestPreview, assessUrgency, liveBurnPerSecond, marginalCost,
   canDelegate, defaultRequirement, canSetRequirement, agreementGapMeeting,
   enterpriseOpportunity, money, moneyAnnual, occurrencesPerYear,
   MEETING_CLASS_LABEL, CRITICALITY_LABEL, REQUIREMENT_LABEL, MODE_LABEL, URGENCY_LABEL,
 } from '../lib/proxyEngine';
-import { MEETING_META } from '../data/proxy';
+
 import { roleBandOfPerson, ROLE_CARD_BY_PERSON } from '../data/roleCards';
 import { ROLE_BAND_LABEL } from '../data/rateCard';
 import { PERSON_BY_ID, ME } from '../data/people';
@@ -134,7 +134,7 @@ export function EconomicsStrip({ meeting }: { meeting: OrgMeeting }) {
    Agenda + timing
    ════════════════════════════════════════════════════════════════ */
 export function AgendaList({ meeting }: { meeting: OrgMeeting }) {
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const timing = assessUrgency(meeting);
   const KIND_LABEL: Record<string, string> = { decision: 'Decision', input_review: 'Input review', status: 'Status', escalation: 'Escalation' };
   return (
@@ -294,7 +294,7 @@ export function DuplicateMergeCard({ meeting, onOpenMeeting }: { meeting: OrgMee
   const { cls, rationale } = classifyMeeting(meeting);
   const { rateCard } = useOrgData();
   if (cls !== 'duplicate') return null;
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const eco = meetingEconomics(meeting);
   const occ = occurrencesPerYear(meta?.cadence ?? 'one_time');
   return (

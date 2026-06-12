@@ -2,9 +2,8 @@ import { useState } from 'react';
 import type { ViewKey } from './lib/types';
 import { useTheme } from './lib/theme';
 import { ME } from './data/people';
-import { useOrgData } from './lib/demoStore';
+import { useOrgData, meetingByIdAll } from './lib/demoStore';
 import { SUCCESS_AGREEMENT_BY_ID } from './data/successAgreements';
-import { ORG_MEETING_BY_ID } from './data/meetingFit';
 
 import Sidebar from './components/Sidebar';
 import TopBar from './components/TopBar';
@@ -44,7 +43,7 @@ export default function App() {
   let crumbName: string | undefined;
   if (view === 'organization-detail' && orgId) crumbName = ORG_BY_ID[orgId]?.name;
   if (view === 'success-agreement-detail' && agreementId) crumbName = SUCCESS_AGREEMENT_BY_ID[agreementId]?.title;
-  if (view === 'meeting-fit-detail' && meetingId) crumbName = ORG_MEETING_BY_ID[meetingId]?.title;
+  if (view === 'meeting-fit-detail' && meetingId) crumbName = meetingByIdAll(meetingId)?.title;
 
   return (
     <div className="app">

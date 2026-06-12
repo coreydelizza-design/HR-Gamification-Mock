@@ -827,13 +827,22 @@ export interface OrgMeeting {
   title: string;
   startsAt: string;
   durationMinutes: number;
-  participatingOrgIds: string[];
+  participatingOrgIds: string[];        // N participating org slugs (no upper limit)
   requiredOrgIds: string[];
   attendeePersonIds: string[];
   decisionOwnerPersonId: string;
   decisionRequested: string;
   agendaSummary: string;
   governingAgreementId?: string;
+  // v3.5c — composition. When present on the meeting these override the seed
+  // MeetingMeta, so a composed/edited meeting is self-contained and recomputes
+  // through the same engine functions. (proxyEngine.metaOf merges them.)
+  meetingType?: 'standard' | 'escalation';
+  agenda?: MeetingAgendaItem[];
+  cadence?: MeetingCadence;
+  inviteePersonIds?: string[];
+  inputNeedBy?: Record<string, { date: string; reason?: string }>;
+  duplicateOf?: string;
 }
 
 export interface OrgMeetingFit {

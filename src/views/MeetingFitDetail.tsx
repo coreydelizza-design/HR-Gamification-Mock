@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { ORG_MEETING_BY_ID, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
+import { ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
 import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
 import { PERSON_BY_ID, WORK_CARD_BY_PERSON, CARD_ANSWERS, ME } from '../data/people';
 import { orgName } from '../lib/orgData';
 import { formatMeetingTime } from '../lib/readiness';
-import { useOrgData } from '../lib/demoStore';
-import { classifyMeeting, inviteesFor } from '../lib/proxyEngine';
+import { useOrgData, meetingByIdAll } from '../lib/demoStore';
+import { classifyMeeting, inviteesFor, isEscalation } from '../lib/proxyEngine';
 import type { Meeting } from '../lib/types';
 import { IconArrowLeft } from '../components/Icons';
 import { MeetingFitBadge, NestedIndividualCard, OrgFreshnessBadge } from '../components/Org';
@@ -13,18 +13,19 @@ import {
   MeetingClassBadge, EconomicsStrip, AgendaList, TimingBanners,
   RosterTable, DigestPreview, DuplicateMergeCard,
 } from '../components/Proxy';
+import { OrgSetStrip, EscalationOwnersPanel, ExpectationsBriefPanel } from '../components/MeetingComposition';
 
 interface Props {
   meetingId: string | null;
   onBack: () => void;
-  onOpenOrg: (id: string) => void;
+  onOpenOrg: (id: string, edit?: boolean) => void;
   onOpenAgreement: (id: string) => void;
   onOpenMeeting?: (id: string) => void;
 }
 
 export default function MeetingFitDetail({ meetingId, onBack, onOpenOrg, onOpenAgreement, onOpenMeeting }: Props) {
   useOrgData(); // subscribe so attendance changes re-toggle the digest panel
-  const meeting = meetingId ? ORG_MEETING_BY_ID[meetingId] : undefined;
+  const meeting = meetingId ? meetingByIdAll(meetingId) : undefined;
   const [actingAs, setActingAs] = useState<string>(ME.id);
   if (!meeting) return <div style={{ fontSize: 13, color: 'var(--muted)' }}>Meeting not found. <button className="detail-back" onClick={onBack}>Back</button></div>;
 
@@ -33,6 +34,7 @@ export default function MeetingFitDetail({ meetingId, onBack, onOpenOrg, onOpenA
   const followUp = fit ? PERSON_BY_ID[fit.followUpOwnerPersonId] : undefined;
   const agreement = meeting.governingAgreementId ? SUCCESS_AGREEMENT_BY_ID[meeting.governingAgreementId] : undefined;
   const { cls, rationale } = classifyMeeting(meeting);
+  const escalation = isEscalation(meeting);
 
   // The acting persona's own row — drives the digest preview when they delegate.
   const actingInvitee = inviteesFor(meeting).find((i) => i.personId === actingAs);
@@ -70,13 +72,32 @@ export default function MeetingFitDetail({ meetingId, onBack, onOpenOrg, onOpenA
         <EconomicsStrip meeting={meeting} />
       </div>
 
+      {/* Meeting Expectations Brief — directly below the class/economics header */}
+      <ExpectationsBriefPanel meeting={meeting} />
+
       <DuplicateMergeCard meeting={meeting} onOpenMeeting={onOpenMeeting} />
+
+      {/* Relationship set across all participating orgs (aggregate-first at 4+) */}
+      {meeting.participatingOrgIds.length >= 2 && (
+        <div className="org-panel">
+          <div className="org-panel-head"><span className="org-panel-title">Organization relationship set</span></div>
+          <OrgSetStrip meeting={meeting} />
+        </div>
+      )}
 
       {/* Agenda with need-by + urgency */}
       <div className="org-panel">
         <div className="org-panel-head"><span className="org-panel-title">Agenda</span></div>
         <AgendaList meeting={meeting} />
       </div>
+
+      {escalation && (
+        <div className="timing-banner tb-danger" style={{ marginBottom: 14 }}>
+          Escalation meeting — people-only by policy. Delegation is disabled for every seat (floor: person-required), per the Agent Representation Lock: “Critical meetings are non-delegable for critical invitees.” Recoverable opportunity is $0 by design.
+        </div>
+      )}
+
+      <EscalationOwnersPanel meeting={meeting} onEditOrg={(orgId) => onOpenOrg(orgId, true)} />
 
       {/* Roster — two-sided consent */}
       <div className="org-panel">

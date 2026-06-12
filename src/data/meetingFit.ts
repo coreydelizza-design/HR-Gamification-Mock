@@ -137,6 +137,40 @@ export const ORG_MEETINGS: OrgMeeting[] = [
     governingAgreementId: 'sa-mktg-sales',
   },
   {
+    // v3.5c — 4-org composition demo: PMO, Engineering, Security, Customer Success.
+    // One missing pair agreement, one input owned by an org not in the room.
+    id: 'm-q3-risk',
+    title: 'Q3 Delivery Risk Review',
+    startsAt: '2026-06-12T16:00:00Z',
+    durationMinutes: 50,
+    participatingOrgIds: ['o-pmo', 'o-eng', 'o-sec', 'o-cs'],
+    requiredOrgIds: ['o-pmo', 'o-eng', 'o-sec', 'o-cs'],
+    attendeePersonIds: ['p-mr', 'p-sk', 'p-me', 'p-dk'],
+    decisionOwnerPersonId: 'p-mr',
+    decisionRequested:
+      'Decide which two at-risk milestones get re-baselined and which security findings block the release.',
+    agendaSummary:
+      'Walk the cross-org delivery risk register, agree mitigation owners, and re-baseline the milestones that can no longer hit their dates.',
+    governingAgreementId: 'sa-pmo-eng',
+  },
+  {
+    // v3.5c — 5-org escalation demo: people-only by policy.
+    id: 'm-major-escalation',
+    title: 'Major Account Escalation',
+    startsAt: '2026-06-11T15:00:00Z',
+    durationMinutes: 45,
+    participatingOrgIds: ['o-sales', 'o-cs', 'o-support', 'o-legal', 'o-eng'],
+    requiredOrgIds: ['o-sales', 'o-cs', 'o-support', 'o-legal', 'o-eng'],
+    attendeePersonIds: ['p-jw', 'p-sk', 'p-mr', 'p-me', 'p-dk'],
+    decisionOwnerPersonId: 'p-sk',
+    decisionRequested:
+      'Agree the remediation commitments to the at-risk strategic account and who owns each within 48 hours.',
+    agendaSummary:
+      'Cross-functional escalation on a strategic account at risk — align on the trigger, the remediation, and the owners.',
+    meetingType: 'escalation',
+    governingAgreementId: 'sa-sales-legal',
+  },
+  {
     // A deliberate near-duplicate of m-prod-eng — same orgs, overlapping topics,
     // recurring weekly, no new required inputs. The classifier flags it for merge.
     id: 'm-prod-eng-sync',
@@ -324,6 +358,50 @@ export const ORG_MEETING_FITS: OrgMeetingFit[] = [
     followUpOwnerPersonId: 'p-pp',
     nextBestAction:
       'Draft a starting lead-qualification definition and SLA proposal before the meeting so there is something concrete to react to.',
+  },
+  {
+    id: 'fit-q3-risk',
+    meetingId: 'm-q3-risk',
+    status: 'at_risk',
+    requiredInputs: [
+      { orgId: 'o-pmo', input: 'Delivery risk register with severities', received: true },
+      { orgId: 'o-eng', input: 'Status and blockers on at-risk milestones', received: true },
+      { orgId: 'o-sec', input: 'Open security findings affecting the release', received: false },
+      { orgId: 'o-data', input: 'Reliability telemetry for at-risk services', received: false },
+    ],
+    missingOrgIds: [],
+    agendaReadiness: 'partial',
+    decisionOwnerPresent: true,
+    formatMatchesNorms: true,
+    handoffImpact:
+      'Re-baselined milestones hand to the delivery plan; unresolved security findings block the release handoff.',
+    createsOrResolvesRisk:
+      'Creates risk: a required input (reliability telemetry) is owned by Data & AI, who is not in the room.',
+    followUpOwnerPersonId: 'p-mr',
+    nextBestAction:
+      'Pull Security’s open findings and Data & AI’s telemetry before the review, or add Data & AI to the room.',
+  },
+  {
+    id: 'fit-major-escalation',
+    meetingId: 'm-major-escalation',
+    status: 'at_risk',
+    requiredInputs: [
+      { orgId: 'o-sales', input: 'Account health summary and the trigger event', received: true },
+      { orgId: 'o-cs', input: 'Renewal exposure and churn risk', received: true },
+      { orgId: 'o-support', input: 'Open Sev tickets and SLA breaches', received: false },
+      { orgId: 'o-legal', input: 'Contractual remedies and liability exposure', received: false },
+    ],
+    missingOrgIds: [],
+    agendaReadiness: 'partial',
+    decisionOwnerPresent: true,
+    formatMatchesNorms: true,
+    handoffImpact:
+      'Remediation commitments hand to each org’s delivery; without Support and Legal inputs the commitments cannot be sized.',
+    createsOrResolvesRisk:
+      'Creates risk: a strategic account churns if the cross-functional remediation is not owned within 48 hours.',
+    followUpOwnerPersonId: 'p-sk',
+    nextBestAction:
+      'Get Support’s open Sev tickets and Legal’s remedy options in hand; every named owner must attend in person.',
   },
   {
     id: 'fit-prod-eng-sync',

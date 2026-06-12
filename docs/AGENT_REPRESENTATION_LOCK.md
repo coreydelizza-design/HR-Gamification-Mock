@@ -33,3 +33,14 @@ A delegate **may** state card content (what the org owns, needs, offers; its eng
 ---
 
 All economics are **estimates for decision-making, never payroll math**, and always render with a tilde (`~`). See `docs/MEETING_FIT_ENGINE.md` for the class/criticality taxonomy and `docs/ORG_INSIGHTS_GUARDRAILS.md` for the no-individual-metrics rule.
+
+## v3.5c — Escalation / people-only meeting type
+
+A meeting may be typed `escalation`. When it is, the policy is enforced in the engine, not just the UI:
+
+- **Class forced to critical** — `classifyMeeting` returns `critical` with rationale "Escalation meetings are people-only by policy."
+- **Every floor is person-required** — `inviteesFor` sets every invitee's `requirement` to `person_required`, so `canDelegate` returns `false` for all seats. The delegation control is disabled with a visible policy note that quotes this lock, never silently grayed.
+- **Not delegation-eligible** — `recoverableOpportunity` returns `$0` with the policy rationale; economics still render (escalations are expensive — the cost is shown).
+- **Escalation-path owners are surfaced** from each participating org's card §Engagement Model as suggested-required attendees, each with a citation. An org with no published escalation path renders as a prominent gap that links into that org card's editor.
+
+This rule is the people-only corollary of rule 4 (critical meetings are non-delegable for critical invitees).

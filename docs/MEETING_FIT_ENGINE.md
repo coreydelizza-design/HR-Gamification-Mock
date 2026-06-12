@@ -77,3 +77,17 @@ Meeting Fit now also classifies each meeting and each invitee (deterministically
 **Timing** (`assessUrgency`): per-item / per-input urgency (overdue / due-this-week / on-track / no-pressure) plus three flags — scheduled-past-deadline, overdue-input escalation, and premature meeting — each with a date-citing rationale.
 
 **Economics** (`meetingEconomics`, `recoverableOpportunity`, `enterpriseOpportunity`): estimates from the enterprise `RateCard`. Rates attach to **role bands (seats), never people**. See `docs/AGENT_REPRESENTATION_LOCK.md`.
+
+## v3.5c — Multi-org composition, org-set analysis, and the Expectations Brief
+
+Meeting Fit is now a composition surface. Meetings hold N participating orgs and a `meetingType` (`standard` | `escalation`). A composed/edited meeting carries its own `agenda`, `cadence`, invitees, and need-by inline, which override the seed `MeetingMeta` (`proxyEngine.metaOf`), so it recomputes through the same engine functions.
+
+**Org-set analysis** (`analyzeMeetingOrgSet`, in `lib/meetingComposition.ts`) runs the pairwise relationship analysis across all C(n,2) pairs and aggregates to meeting level, every output card-cited:
+- `requiredInputs` — owner org, provider org, need-by, present/missing, and whether the owner is in the room.
+- `pairs` / `agreementCoverage` — per pair: published / draft / needs_refresh / **missing**, with aggregate counts.
+- `decisions` — which org holds each decision-kind agenda item; flagged when the decision owner's org is not in the room.
+- `escalationOwners` — each org's escalation-path owner from §Engagement Model, with missing-path gaps.
+
+**Aggregation guardrail:** ≤3 participating orgs may render pair relationships individually; 4+ shows an aggregate strip ("5 orgs · 10 pair relationships · 3 lack agreements · 2 required inputs unowned") with an expandable, **worst-first** detail list (missing agreement > needs_refresh > healthy). Never an unsorted wall of pairs.
+
+**Meeting Expectations Brief** (`composeExpectationsBrief`) — a pure, deterministic, card-cited composition: a purpose line, per-org expectations (walks in expecting / brings / decision rights in play / meeting norms / escalation owner — only agenda-relevant sections render, matched on agenda item kind and keyword overlap), a "what this meeting needs to succeed" checklist (inputs with owner + need-by + status, missing-agreement caveats, unowned decisions, pre-read obligations), and a freshness source note. **No LLM** — an LLM-polished rendering is a marked Phase-5 extension point only. "Copy as Markdown" and "Download .md" use the same composition function (`briefToMarkdown`) — single source.

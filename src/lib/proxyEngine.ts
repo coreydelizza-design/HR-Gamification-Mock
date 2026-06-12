@@ -2,10 +2,10 @@ import type {
   OrgMeeting, OrgMeetingFit, MeetingClass, MeetingInvitee, InviteeCriticality,
   RepresentationRequirement, AttendanceMode, RemitDigestItem, Urgency, NeedBy,
   MeetingCadence, RateCard, MeetingEconomics, EnterpriseOpportunity, RoleBand,
-  SuccessAgreement, RemitDigestKind, DelegationGrant,
+  SuccessAgreement, RemitDigestKind, DelegationGrant, MeetingAgendaItem,
 } from './types';
 import { ORG_MEETING_BY_ID, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
-import { MEETING_META, type MeetingMeta } from '../data/proxy';
+import { MEETING_META } from '../data/proxy';
 import { SUCCESS_AGREEMENT_BY_ID } from '../data/successAgreements';
 import { ORG_OF_PERSON, ROLE_CARD_BY_PERSON, roleBandOfPerson } from '../data/roleCards';
 import { ROLE_BAND_LABEL, ROLE_BAND_ORDER } from '../data/rateCard';
@@ -61,7 +61,35 @@ const agreementOf = (m: OrgMeeting): SuccessAgreement | undefined =>
 
 export interface MeetingClassResult { cls: MeetingClass; rationale: string }
 
-export function classifyMeeting(meeting: OrgMeeting, meta = MEETING_META[meeting.id]): MeetingClassResult {
+/** Resolve composition data: a meeting's own inline fields override the seed meta,
+ *  so composed / edited meetings are self-contained and recompute through one path. */
+export interface ResolvedMeta {
+  agenda: MeetingAgendaItem[];
+  cadence: MeetingCadence;
+  inviteePersonIds: string[];
+  inputNeedBy?: Record<string, { date: string; reason?: string }>;
+  duplicateOf?: string;
+}
+export function metaOf(meeting: OrgMeeting): ResolvedMeta {
+  const seed = MEETING_META[meeting.id];
+  return {
+    agenda: meeting.agenda ?? seed?.agenda ?? [],
+    cadence: meeting.cadence ?? seed?.cadence ?? 'one_time',
+    inviteePersonIds: meeting.inviteePersonIds ?? seed?.inviteePersonIds ?? meeting.attendeePersonIds,
+    inputNeedBy: meeting.inputNeedBy ?? seed?.inputNeedBy,
+    duplicateOf: meeting.duplicateOf ?? seed?.duplicateOf,
+  };
+}
+
+export function isEscalation(meeting: OrgMeeting): boolean {
+  return meeting.meetingType === 'escalation';
+}
+
+export function classifyMeeting(meeting: OrgMeeting): MeetingClassResult {
+  if (isEscalation(meeting)) {
+    return { cls: 'critical', rationale: 'Escalation meetings are people-only by policy — forced to critical; no seat is delegable.' };
+  }
+  const meta = metaOf(meeting);
   if (meta?.duplicateOf) {
     const other = ORG_MEETING_BY_ID[meta.duplicateOf];
     return {
@@ -91,12 +119,12 @@ export interface CriticalityResult { criticality: InviteeCriticality; rationale:
 export function classifyInvitee(
   personId: string,
   meeting: OrgMeeting,
-  meta = MEETING_META[meeting.id],
   fit = ORG_MEETING_FIT_BY_MEETING[meeting.id],
 ): CriticalityResult {
+  const meta = metaOf(meeting);
   const orgSlug = ORG_OF_PERSON[personId] ?? '';
   const roleCard = ROLE_CARD_BY_PERSON[personId];
-  const { cls } = classifyMeeting(meeting, meta);
+  const { cls } = classifyMeeting(meeting);
   const isOwner = meeting.decisionOwnerPersonId === personId;
 
   // 1 · owns a required input that is missing and past its need-by → escalation elevation
@@ -163,13 +191,15 @@ export function canDelegate(requirement: RepresentationRequirement, cls: Meeting
    ════════════════════════════════════════════════════════════════ */
 
 export function inviteesFor(meeting: OrgMeeting, attendance: AttendanceState = currentAttendance()): MeetingInvitee[] {
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const fit = ORG_MEETING_FIT_BY_MEETING[meeting.id];
-  const { cls } = classifyMeeting(meeting, meta);
-  const roster = meta?.inviteePersonIds ?? meeting.attendeePersonIds;
+  const { cls } = classifyMeeting(meeting);
+  const escalation = isEscalation(meeting);
+  const roster = meta.inviteePersonIds;
   return roster.map((personId) => {
-    const { criticality, rationale } = classifyInvitee(personId, meeting, meta, fit);
-    const requirement = defaultRequirement(cls, criticality);
+    const { criticality, rationale } = classifyInvitee(personId, meeting, fit);
+    // Escalation meetings are people-only: every floor is person_required.
+    const requirement = escalation ? 'person_required' : defaultRequirement(cls, criticality);
     const a = attendance[meeting.id]?.[personId];
     const grant: DelegationGrant | undefined = a?.mode === 'delegate' && !a.revoked
       ? { personId, meetingId: meeting.id, grantedAt: a.grantedAt ?? '', scope: 'own_remit' }
@@ -191,7 +221,7 @@ export function inviteesFor(meeting: OrgMeeting, attendance: AttendanceState = c
    ════════════════════════════════════════════════════════════════ */
 
 export function buildRemitDigestPreview(personId: string, meeting: OrgMeeting): RemitDigestItem[] {
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const orgSlug = ORG_OF_PERSON[personId] ?? '';
   const myOrg = orgName(orgSlug) || 'your organization';
   const roleCard = ROLE_CARD_BY_PERSON[personId];
@@ -245,7 +275,7 @@ export interface TimingAssessment {
 }
 
 export function assessUrgency(meeting: OrgMeeting, now = DEMO_NOW): TimingAssessment {
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const fit = ORG_MEETING_FIT_BY_MEETING[meeting.id];
   const startMs = new Date(meeting.startsAt).getTime();
   const agenda = meta?.agenda ?? [];
@@ -281,7 +311,7 @@ export function assessUrgency(meeting: OrgMeeting, now = DEMO_NOW): TimingAssess
   }
 
   // async strengthened: informational class with no time pressure on the agenda
-  const { cls } = classifyMeeting(meeting, meta);
+  const { cls } = classifyMeeting(meeting);
   let asyncStrengthened: string | undefined;
   if (cls === 'informational' && agendaUrgency.every((a) => a.urgency === 'no_pressure' || a.urgency === 'on_track')) {
     asyncStrengthened = 'No time pressure on the agenda — an async digest by end of week achieves the same outcome as meeting live.';
@@ -357,8 +387,12 @@ export function recoverableOpportunity(
   const { cls } = classifyMeeting(meeting);
   const total = live.reduce((s, i) => s + seatCost(i.personId, dur, rc), 0);
 
+  if (isEscalation(meeting)) {
+    return { amount: 0, rationale: `${money(0, rc.currency)} — escalation meetings are not delegation-eligible (people-only by policy). Every seat must attend live.` };
+  }
+
   if (cls === 'duplicate') {
-    const meta = MEETING_META[meeting.id];
+    const meta = metaOf(meeting);
     const other = meta?.duplicateOf ? ORG_MEETING_BY_ID[meta.duplicateOf] : undefined;
     return { amount: total, rationale: `${money(total, rc.currency)} recoverable per occurrence — this meeting duplicates "${other?.title ?? 'another meeting'}"; cancel or merge it.` };
   }
@@ -393,7 +427,7 @@ export function meetingEconomics(
   const costAvoided = [...delegate, ...async].reduce((s, i) => s + seatCost(i.personId, dur, rc), 0);
   const recoverable = recoverableOpportunity(meeting, rc, attendance).amount;
 
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const occ = occurrencesPerYear(meta?.cadence ?? 'one_time');
   const recurring = occ > 1;
 
@@ -432,11 +466,11 @@ export function enterpriseOpportunity(
   let spend = 0, informational = 0, duplicate = 0, asyncEligible = 0, gap = 0;
 
   for (const meeting of meetings) {
-    const meta = MEETING_META[meeting.id];
+    const meta = metaOf(meeting);
     if (!meta) continue;
     const dur = meeting.durationMinutes;
     const occ = occurrencesPerYear(meta.cadence);
-    const { cls } = classifyMeeting(meeting, meta);
+    const { cls } = classifyMeeting(meeting);
     const invitees = inviteesFor(meeting, attendance);
     const live = invitees.filter((i) => (i.chosenMode ?? 'live') === 'live');
     const agr = agreementOf(meeting);
@@ -465,7 +499,7 @@ export function enterpriseOpportunity(
 
 /* ── per-meeting helper for the gap driver's "fix" link ──────────── */
 export function agreementGapMeeting(meeting: OrgMeeting): { agreementId?: string; status?: string } | undefined {
-  const meta = MEETING_META[meeting.id];
+  const meta = metaOf(meeting);
   const agr = agreementOf(meeting);
   if (meta?.agenda.some((a) => a.kind === 'escalation') && (!agr || agr.status !== 'published')) {
     return { agreementId: agr?.id, status: agr?.status ?? 'missing' };
