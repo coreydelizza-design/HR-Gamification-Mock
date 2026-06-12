@@ -138,7 +138,7 @@ export const ORGANIZATIONS: Organization[] = [
   {
     id: 'o-strat', enterpriseId: ENT, name: 'Corporate Strategy', category: 'leadership', tier: 2,
     mission: 'Translate strategy into the next decision and unblock cross-team work.',
-    executiveOwner: 'Patricia Mbeki · CEO', operatingOwner: 'Alex Morgan · Director of Strategy',
+    executiveOwner: 'Patricia Mbeki · CEO', operatingOwner: 'Tom Murray · Director of Strategy',
     parentOrgId: 'o-exec', orgPackId: 'pack-exec', memberCount: 9,
     partnerOrgIds: ['o-exec', 'o-fin', 'o-prod', 'o-pmo'],
     freshness: 'fresh', lastReviewedAt: '2026-05-28T00:00:00Z', nextReviewAt: '2026-08-28T00:00:00Z',

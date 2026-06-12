@@ -4,11 +4,11 @@ const ORG = 'org-acme-na';
 
 /* ─────────────────────────────────────────────────────────────────
    People — the demo roster.
-   The viewer is `p-me` (Alex Morgan).
+   The viewer is `p-me` (Tom Murray).
    ───────────────────────────────────────────────────────────────── */
 export const PEOPLE: Person[] = [
   {
-    id: 'p-me', orgId: ORG, name: 'Alex Morgan', initials: 'AM',
+    id: 'p-me', orgId: ORG, name: 'Tom Murray', initials: 'TM',
     role: 'Director of Strategy', primaryTeamId: 't-strat',
     location: 'Boulder, CO', timeZone: 'America/Denver',
     workingHours: '8am – 4pm MT (deep focus 7–11am)',
@@ -110,7 +110,7 @@ const ans = (id: string, cardId: string, sectionKey: CardAnswer['sectionKey'], b
 });
 
 export const CARD_ANSWERS: CardAnswer[] = [
-  // Alex Morgan (p-me) — well-covered
+  // Tom Murray (p-me) — well-covered
   ans('a-me-1', 'wc-me', 'communication',     'Slack DM during 8am–4pm MT. Email otherwise. Phone for true urgency — if it is on the phone, I assume it is on fire.', '2026-05-29T00:00:00Z'),
   ans('a-me-2', 'wc-me', 'meetings',          'Pre-read everything. I will skim once and want the meeting to start at the decision. Time-box to 25 minutes.', '2026-05-29T00:00:00Z'),
   ans('a-me-3', 'wc-me', 'feedback',          'Direct, immediate, and private. Skip the compliment sandwich — it makes me distrust the compliment and miss the point.', '2026-05-15T00:00:00Z', 'team'),

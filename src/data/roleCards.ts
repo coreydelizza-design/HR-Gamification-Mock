@@ -11,7 +11,7 @@ import { PEOPLE } from './people';
 
 /** Which organization each demo person belongs to (their work card nests here). */
 export const ORG_OF_PERSON: Record<string, string> = {
-  'p-me': 'o-strat',   // Alex Morgan — Director of Strategy
+  'p-me': 'o-strat',   // Tom Murray — Director of Strategy
   'p-mc': 'o-prod',    // Maya Chen — Director, Product
   'p-mr': 'o-eng',     // Marcus Rivera — Sr Engineering Manager
   'p-pp': 'o-mktg',    // Priya Patel — Marketing Director
