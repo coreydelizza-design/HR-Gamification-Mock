@@ -510,7 +510,7 @@ button { font-family: inherit; }
 .org-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .org-preview {
   text-align: left; background: var(--surface); border: 1px solid var(--rule);
-  border-radius: 12px; padding: 16px 18px; cursor: pointer; font-family: inherit;
+  border-radius: 12px; padding: 16px 18px; cursor: pointer; font-family: inherit; color: var(--ink);
   display: flex; flex-direction: column; transition: border-color 120ms, transform 120ms;
 }
 .org-preview:hover { border-color: var(--subtle); transform: translateY(-1px); }
