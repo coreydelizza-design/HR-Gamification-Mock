@@ -56,3 +56,24 @@ Person context is reachable in **≤1 click** from any meeting. This is the only
 ## Boundaries
 
 No attendee is scored, ranked, or flagged as "non-collaborative." All readiness is meeting/org-level. The engine reads `OrgPack.meetingFitRules` (see `ADMIN_ORG_PACKS.md`) for its checks.
+
+## v3.5b — Proxy: class & criticality taxonomy
+
+Meeting Fit now also classifies each meeting and each invitee (deterministically, in `lib/proxyEngine.ts`).
+
+**Meeting class** (`classifyMeeting`):
+- **critical** — an agenda item exercises a decision right, reviews/signs a Success Agreement, or invokes an escalation path.
+- **duplicate** — same participating orgs + overlapping agenda + no new required inputs vs. a prior occurrence; recommendation: cancel or merge, naming the matched meeting.
+- **representational** — an org's input is needed but no decision right is exercised.
+- **informational** — status / FYI only.
+
+**Invitee criticality** (`classifyInvitee`), each with a rationale citing card data:
+- **critical** — holds a decision right exercised on the agenda, owns a missing required input (past its need-by → escalation elevation), or is an owner-party to an agreement under review.
+- **contributing** — their org's needs/offers intersect the agenda topics.
+- **informational** — attending for awareness only.
+
+**Representation floor** (`defaultRequirement`): critical-in-critical → `person_required`; contributing-in-representational → `org_delegate_minimum`; informational → `agent_optional`. Floors are tighten-only; critical invitees in critical meetings are **non-delegable** (`canDelegate`).
+
+**Timing** (`assessUrgency`): per-item / per-input urgency (overdue / due-this-week / on-track / no-pressure) plus three flags — scheduled-past-deadline, overdue-input escalation, and premature meeting — each with a date-citing rationale.
+
+**Economics** (`meetingEconomics`, `recoverableOpportunity`, `enterpriseOpportunity`): estimates from the enterprise `RateCard`. Rates attach to **role bands (seats), never people**. See `docs/AGENT_REPRESENTATION_LOCK.md`.

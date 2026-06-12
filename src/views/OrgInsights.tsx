@@ -5,12 +5,15 @@ import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
 import { ORG_MEETING_FITS } from '../data/meetingFit';
 import { ORG_PACK_BY_ID } from '../data/orgPacks';
 import { successFor, orgName } from '../lib/orgData';
+import { OpportunitySummary } from '../components/Proxy';
 
 interface Props {
   onOpenOrg: (id: string) => void;
+  onOpenAgreement?: (id: string) => void;
+  onOpenMeeting?: (id: string) => void;
 }
 
-export default function OrgInsights({ onOpenOrg }: Props) {
+export default function OrgInsights({ onOpenOrg, onOpenAgreement, onOpenMeeting }: Props) {
   const { organizations: ORGANIZATIONS, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
   const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), [ORGANIZATIONS]);
 
@@ -78,6 +81,15 @@ export default function OrgInsights({ onOpenOrg }: Props) {
       <div className="section-desc">
         Where the enterprise operating model is unclear — at the organization and relationship level only.
         No individual metric, ranking, or comparison appears here.
+      </div>
+
+      {/* Opportunity — the headline: annual meeting spend vs recoverable, by driver */}
+      <div className="home-card" style={{ marginBottom: 18 }}>
+        <div className="home-card-head">
+          <div className="home-card-title">Opportunity — meeting cost vs operating-model gaps</div>
+          <span className="home-card-meta">org-level only</span>
+        </div>
+        <OpportunitySummary onOpenAgreement={onOpenAgreement} onOpenMeeting={onOpenMeeting} />
       </div>
 
       <div className="metrics-grid">

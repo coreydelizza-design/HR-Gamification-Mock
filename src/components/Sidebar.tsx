@@ -36,6 +36,7 @@ const PARENT_OF: Partial<Record<ViewKey, ViewKey>> = {
   'organization-detail': 'organizations',
   'success-agreement-detail': 'success-agreements',
   'meeting-fit-detail': 'meeting-fit',
+  'estimator': 'admin',
 };
 
 export default function Sidebar({ view, user, onNavigate }: Props) {

@@ -1,4 +1,4 @@
-import type { RoleCard } from '../lib/types';
+import type { RoleCard, RoleBand } from '../lib/types';
 import { PEOPLE } from './people';
 
 /**
@@ -28,43 +28,43 @@ export const PEOPLE_BY_ORG: Record<string, string[]> = PEOPLE.reduce((acc, p) =>
 
 export const ROLE_CARDS: RoleCard[] = [
   {
-    id: 'rc-strat-lead', orgId: 'o-strat', title: 'Director of Strategy', personId: 'p-me',
+    id: 'rc-strat-lead', orgId: 'o-strat', title: 'Director of Strategy', personId: 'p-me', roleBand: 'director',
     responsibilities: ['Cross-team operating cadence', 'Strategic planning rituals', 'Executive alignment'],
     decisionRights: ['Quarterly theme nomination', 'Cross-team coordination'],
     smeTags: ['Strategy', 'Operating cadence', 'Decision memos'],
   },
   {
-    id: 'rc-prod-lead', orgId: 'o-prod', title: 'Director, Product', personId: 'p-mc',
+    id: 'rc-prod-lead', orgId: 'o-prod', title: 'Director, Product', personId: 'p-mc', roleBand: 'director',
     responsibilities: ['Product roadmap', 'Problem framing', 'Research synthesis'],
     decisionRights: ['Roadmap order', 'Definition of done for a feature'],
     smeTags: ['Product', 'Prioritization', 'Discovery'],
   },
   {
-    id: 'rc-eng-lead', orgId: 'o-eng', title: 'Sr Engineering Manager', personId: 'p-mr',
+    id: 'rc-eng-lead', orgId: 'o-eng', title: 'Sr Engineering Manager', personId: 'p-mr', roleBand: 'manager',
     responsibilities: ['Delivery', 'Team health', 'Incident response'],
     decisionRights: ['Delivery sequencing', 'On-call policy'],
     smeTags: ['Engineering delivery', 'Reliability', 'Team leadership'],
   },
   {
-    id: 'rc-mktg-lead', orgId: 'o-mktg', title: 'Marketing Director', personId: 'p-pp',
+    id: 'rc-mktg-lead', orgId: 'o-mktg', title: 'Marketing Director', personId: 'p-pp', roleBand: 'director',
     responsibilities: ['Positioning', 'Demand gen', 'Brand'],
     decisionRights: ['Positioning and messaging', 'Campaign timing'],
     smeTags: ['Positioning', 'Campaigns', 'Brand'],
   },
   {
-    id: 'rc-sales-lead', orgId: 'o-sales', title: 'Sr Director, Sales', personId: 'p-jw',
+    id: 'rc-sales-lead', orgId: 'o-sales', title: 'Sr Director, Sales', personId: 'p-jw', roleBand: 'director',
     responsibilities: ['Pipeline progression', 'Discovery quality', 'Commitments to prospects'],
     decisionRights: ['Deal qualification', 'Discount within policy'],
     smeTags: ['Sales', 'Forecasting', 'Deal handoffs'],
   },
   {
-    id: 'rc-cs-lead', orgId: 'o-cs', title: 'VP Customer Success', personId: 'p-sk',
+    id: 'rc-cs-lead', orgId: 'o-cs', title: 'VP Customer Success', personId: 'p-sk', roleBand: 'vp',
     responsibilities: ['Onboarding', 'Renewal motion', 'Customer health'],
     decisionRights: ['Customer-facing commitments within scope', 'Renewal recommendation'],
     smeTags: ['Customer success', 'Retention', 'Escalations'],
   },
   {
-    id: 'rc-data-lead', orgId: 'o-data', title: 'Data Science Lead', personId: 'p-dk',
+    id: 'rc-data-lead', orgId: 'o-data', title: 'Data Science Lead', personId: 'p-dk', roleBand: 'senior_ic',
     responsibilities: ['Data platform', 'Decision science', 'Model reliability'],
     decisionRights: ['Metric definitions', 'Model deployment'],
     smeTags: ['Data', 'Modeling', 'Experimentation'],
@@ -75,3 +75,13 @@ export const ROLE_CARDS_BY_ORG: Record<string, RoleCard[]> = ROLE_CARDS.reduce((
   (acc[rc.orgId] ??= []).push(rc);
   return acc;
 }, {} as Record<string, RoleCard[]>);
+
+export const ROLE_CARD_BY_PERSON: Record<string, RoleCard> = ROLE_CARDS.reduce((acc, rc) => {
+  if (rc.personId) acc[rc.personId] = rc;
+  return acc;
+}, {} as Record<string, RoleCard>);
+
+/** A person's role band comes from their seat (role card), never from comp. */
+export function roleBandOfPerson(personId: string): RoleBand {
+  return ROLE_CARD_BY_PERSON[personId]?.roleBand ?? 'manager';
+}

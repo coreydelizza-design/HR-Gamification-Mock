@@ -65,3 +65,18 @@ any `Person` / `RoleCard` / `IndividualWorkCard`. The "Commercial clarity" stat
 revenue-generating) — never from individual attainment. Attainment bars show an
 organization's target progress with no person attribution. The People & role
 cards section of any Organization Card explicitly carries no commercial data.
+
+## v3.5b — Delegation economics are org-level only
+
+The Proxy capability adds meeting economics and an Opportunity headline (annual
+meeting spend vs. recoverable, by driver: informational attendance, duplicate
+meetings, async-eligible status meetings, agreement-gap escalations). These
+**aggregate at the organization / relationship level only**.
+
+Hard rule: **no individual delegation metric exists anywhere** — no "skipped
+meetings" count, no per-person delegation rate, no per-person cost. Rates attach
+to **role bands (seats), never to a named person**; no individual compensation is
+stored, displayed, or implied (Shopify precedent). The only per-person state is a
+person's own current attendance mode for a meeting, which they alone control. All
+figures are estimates for decision-making, never payroll. See
+`docs/AGENT_REPRESENTATION_LOCK.md`.

@@ -136,6 +136,23 @@ export const ORG_MEETINGS: OrgMeeting[] = [
       'Define what a campaign-qualified lead looks like and the timing Sales can expect, so the handoff stops dropping leads.',
     governingAgreementId: 'sa-mktg-sales',
   },
+  {
+    // A deliberate near-duplicate of m-prod-eng — same orgs, overlapping topics,
+    // recurring weekly, no new required inputs. The classifier flags it for merge.
+    id: 'm-prod-eng-sync',
+    title: 'Product ↔ Engineering: Weekly Roadmap Sync',
+    startsAt: '2026-06-12T17:30:00Z',
+    durationMinutes: 30,
+    participatingOrgIds: ['o-prod', 'o-eng'],
+    requiredOrgIds: ['o-prod', 'o-eng'],
+    attendeePersonIds: ['p-mc', 'p-mr', 'p-dk'],
+    decisionOwnerPersonId: 'p-mc',
+    decisionRequested:
+      'Re-confirm roadmap sequencing and surface any new engineering blockers since the last sync.',
+    agendaSummary:
+      'Standing weekly status on roadmap order and capacity — largely the same ground as the Roadmap Review.',
+    governingAgreementId: 'sa-prod-eng',
+  },
 ];
 
 /* ─────────────────────────────────────────────────────────────────
@@ -307,6 +324,28 @@ export const ORG_MEETING_FITS: OrgMeetingFit[] = [
     followUpOwnerPersonId: 'p-pp',
     nextBestAction:
       'Draft a starting lead-qualification definition and SLA proposal before the meeting so there is something concrete to react to.',
+  },
+  {
+    id: 'fit-prod-eng-sync',
+    meetingId: 'm-prod-eng-sync',
+    status: 'async_recommended',
+    requiredInputs: [
+      { orgId: 'o-prod', input: 'Roadmap order (unchanged since Roadmap Review)', received: true },
+      { orgId: 'o-eng', input: 'Capacity snapshot (unchanged since Roadmap Review)', received: true },
+    ],
+    missingOrgIds: [],
+    agendaReadiness: 'complete',
+    decisionOwnerPresent: true,
+    formatMatchesNorms: false,
+    asyncRecommendation:
+      'This standing sync re-covers the Roadmap Review with no new inputs — fold it into that meeting or run it as an async status post.',
+    handoffImpact:
+      'Nothing new hands off here that the Roadmap Review does not already cover.',
+    createsOrResolvesRisk:
+      'Creates risk: a redundant recurring meeting burns recurring cost without producing a distinct decision.',
+    followUpOwnerPersonId: 'p-mc',
+    nextBestAction:
+      'Merge into the Roadmap Review or convert to an async status thread; reserve live time only when sequencing actually changes.',
   },
 ];
 

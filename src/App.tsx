@@ -19,6 +19,7 @@ import SuccessAgreementDetail from './views/SuccessAgreementDetail';
 import MeetingFit from './views/MeetingFit';
 import MeetingFitDetail from './views/MeetingFitDetail';
 import OrgInsights from './views/OrgInsights';
+import Estimator from './views/Estimator';
 import Admin from './views/Admin';
 
 export default function App() {
@@ -58,9 +59,10 @@ export default function App() {
           {view === 'success-agreements' && <SuccessAgreements onOpenAgreement={openAgreement} onOpenOrg={openOrg} />}
           {view === 'success-agreement-detail' && <SuccessAgreementDetail agreementId={agreementId} onBack={() => setView('success-agreements')} onOpenOrg={openOrg} />}
           {view === 'meeting-fit' && <MeetingFit onOpenMeeting={openMeeting} />}
-          {view === 'meeting-fit-detail' && <MeetingFitDetail meetingId={meetingId} onBack={() => setView('meeting-fit')} onOpenOrg={openOrg} onOpenAgreement={openAgreement} />}
-          {view === 'org-insights' && <OrgInsights onOpenOrg={openOrg} />}
-          {view === 'admin' && <Admin onNewOrg={() => setWizardOpen(true)} />}
+          {view === 'meeting-fit-detail' && <MeetingFitDetail meetingId={meetingId} onBack={() => setView('meeting-fit')} onOpenOrg={openOrg} onOpenAgreement={openAgreement} onOpenMeeting={openMeeting} />}
+          {view === 'org-insights' && <OrgInsights onOpenOrg={openOrg} onOpenAgreement={openAgreement} onOpenMeeting={openMeeting} />}
+          {view === 'estimator' && <Estimator onNavigate={navigate} onOpenAgreement={openAgreement} onOpenMeeting={openMeeting} />}
+          {view === 'admin' && <Admin onNewOrg={() => setWizardOpen(true)} onNavigate={navigate} />}
         </div>
       </main>
       {wizardOpen && <CreateOrgWizard onClose={() => setWizardOpen(false)} onCreated={onWizardCreated} />}

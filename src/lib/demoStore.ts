@@ -2,11 +2,13 @@ import { useSyncExternalStore } from 'react';
 import type {
   Organization, OrganizationCard, OrganizationCategory, OrgTier,
   EngagementModel, OrgMeetingNorms, OrgCommercialProfile,
+  RateCard, AttendanceMode, RoleBand, Currency,
 } from './types';
 import { ORGANIZATIONS } from '../data/organizations';
 import { ORG_CARDS } from '../data/orgCards';
 import { ORG_COMMERCIAL } from '../data/orgCommercial';
 import { ENTERPRISE } from '../data/enterprise';
+import { DEFAULT_RATE_CARD, buildRateCard } from '../data/rateCard';
 
 /**
  * demoStore — the mutable in-memory data source that powers interactive,
@@ -24,16 +26,21 @@ import { ENTERPRISE } from '../data/enterprise';
  * onto 1:1. See docs/WORKSHOP_MODE.md.
  */
 
-export const SCHEMA_VERSION = 1 as const;
-const STATE_KEY = 'fieldguide:demo-state:v1';
+export const SCHEMA_VERSION = 2 as const;
+const STATE_KEY = 'fieldguide:demo-state:v2';
 const SNAPSHOT_KEY = (n: number) => `fieldguide:demo-snapshot:${n}`;
 export const MAX_SNAPSHOTS = 3;
+
+/** Per-meeting, per-person attendance choice (self-assigned by the individual). */
+export type AttendanceState = Record<string, Record<string, { mode: AttendanceMode; grantedAt?: string; revoked?: boolean }>>;
 
 export interface DemoState {
   schemaVersion: typeof SCHEMA_VERSION;
   enterpriseLabel: string;
   organizations: Organization[];
   orgCards: OrganizationCard[];
+  rateCard: RateCard;            // v3.5b — one per enterprise, Admin-editable
+  attendance: AttendanceState;   // v3.5b — delegation / async choices + consent grants
   modified: boolean;
 }
 
@@ -64,6 +71,8 @@ function seedState(): DemoState {
     enterpriseLabel: ENTERPRISE.name,
     organizations: clone(ORGANIZATIONS),
     orgCards,
+    rateCard: clone(DEFAULT_RATE_CARD),
+    attendance: {},
     modified: false,
   };
 }
@@ -76,6 +85,9 @@ function loadState(): DemoState {
     if (parsed.schemaVersion !== SCHEMA_VERSION || !Array.isArray(parsed.organizations) || !Array.isArray(parsed.orgCards)) {
       return seedState(); // version/shape mismatch → discard and reload static data
     }
+    // Backfill the v3.5b fields if an in-version state predates them.
+    if (!parsed.rateCard) parsed.rateCard = clone(DEFAULT_RATE_CARD);
+    if (!parsed.attendance) parsed.attendance = {};
     return parsed;
   } catch {
     return seedState();
@@ -123,6 +135,8 @@ export interface OrgIndex {
   tier1: Organization[];
   tier2: Organization[];
   enterpriseLabel: string;
+  rateCard: RateCard;
+  attendance: AttendanceState;
   modified: boolean;
 }
 
@@ -139,6 +153,8 @@ export function indexOf(s: DemoState): OrgIndex {
     tier1: s.organizations.filter((o) => o.tier === 1),
     tier2: s.organizations.filter((o) => o.tier === 2),
     enterpriseLabel: s.enterpriseLabel,
+    rateCard: s.rateCard,
+    attendance: s.attendance,
     modified: s.modified,
   };
   indexCache.set(s, idx);
@@ -294,6 +310,33 @@ export function renameEnterprise(label: string): void {
   commit({ ...state, enterpriseLabel: label || ENTERPRISE.name, modified: true });
 }
 
+/* ── rate card (the seat, never the person) ───────────────────────── */
+/** Rebuild the enterprise rate card from base salaries + multiplier; marks it edited. */
+export function updateRateCard(
+  bases: Record<RoleBand, number>, multiplier: number, currency: Currency,
+): void {
+  const rateCard = buildRateCard(bases, multiplier, currency, false);
+  commit({ ...state, rateCard, modified: true });
+}
+
+/* ── attendance: the individual self-assigns their own mode ───────── */
+/** Set (or clear) a person's attendance mode for a meeting. Choosing 'delegate'
+ *  records a consent grant timestamp; switching away revokes it. */
+export function setAttendanceMode(meetingId: string, personId: string, mode: AttendanceMode): void {
+  const meetingMap = { ...(state.attendance[meetingId] ?? {}) };
+  if (mode === 'live') {
+    delete meetingMap[personId];
+  } else {
+    meetingMap[personId] = {
+      mode,
+      grantedAt: mode === 'delegate' ? new Date().toISOString() : undefined,
+      revoked: false,
+    };
+  }
+  const attendance = { ...state.attendance, [meetingId]: meetingMap };
+  commit({ ...state, attendance, modified: true });
+}
+
 export function resetDemo(): void {
   try { window.localStorage.removeItem(STATE_KEY); } catch { /* ignore */ }
   commit(seedState());
@@ -314,6 +357,8 @@ export function importSession(file: unknown): { ok: boolean; error?: string } {
       enterpriseLabel: f.enterpriseLabel || ENTERPRISE.name,
       organizations: clone(f.organizations),
       orgCards: clone(f.orgCards),
+      rateCard: f.rateCard ? clone(f.rateCard) : clone(DEFAULT_RATE_CARD),
+      attendance: f.attendance ? clone(f.attendance) : {},
       modified: true,
     });
     return { ok: true };

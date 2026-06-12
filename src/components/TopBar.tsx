@@ -13,6 +13,7 @@ const LABELS: Record<ViewKey, string> = {
   'meeting-fit':              'Meeting Fit',
   'meeting-fit-detail':       'Meeting Fit',
   'org-insights':             'Org Insights',
+  estimator:                  'Meeting Cost Estimator',
   admin:                      'Admin',
 };
 

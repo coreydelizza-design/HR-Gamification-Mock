@@ -23,6 +23,7 @@ export type ViewKey =
   | 'meeting-fit'
   | 'meeting-fit-detail'         // PARENT_OF meeting-fit
   | 'org-insights'
+  | 'estimator'                  // Meeting Cost Estimator (PARENT_OF admin)
   | 'admin';
 
 
@@ -873,6 +874,7 @@ export interface RoleCard {
   orgId: string;
   title: string;
   personId?: string;            // filled role, when assigned
+  roleBand: RoleBand;           // the seat's band — drives rate-card economics (never comp)
   responsibilities: string[];
   decisionRights: string[];
   smeTags: string[];
@@ -968,4 +970,112 @@ export interface CrossOrgSuccessAnalysis {
   recommendedClauses: SuccessAgreementClause[];
   meetingGuidance: string;
   nextBestActions: string[];
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   V3.5b — PROXY: GOVERNED MEETING DELEGATION
+
+   Two-sided consent is structural, not cosmetic:
+   - The organizer sets a representation FLOOR per invitee (RepresentationRequirement).
+   - The individual alone sets their AttendanceMode and produces a DelegationGrant.
+   Critical invitees in critical meetings are non-delegable. Delegates capture
+   only remit-scoped digest items — never a transcript, never observations about
+   other attendees. No individual delegation metrics exist; economics aggregate at
+   the organization level, and rates attach to role bands (the seat), never people.
+   See docs/AGENT_REPRESENTATION_LOCK.md.
+   ═══════════════════════════════════════════════════════════════════ */
+
+export type MeetingClass = 'critical' | 'representational' | 'informational' | 'duplicate';
+export type InviteeCriticality = 'critical' | 'contributing' | 'informational';
+export type RepresentationRequirement = 'person_required' | 'org_delegate_minimum' | 'agent_optional';
+export type AttendanceMode = 'live' | 'delegate' | 'async_digest' | 'not_needed';
+
+/** Consent record produced when an individual delegates a meeting to an agent. */
+export interface DelegationGrant {
+  personId: string;
+  meetingId: string;
+  grantedAt: string;            // ISO
+  scope: 'own_remit';
+  revoked?: boolean;
+}
+
+export interface MeetingInvitee {
+  personId: string;
+  orgSlug: string;
+  criticality: InviteeCriticality;
+  criticalityRationale: string;            // computed, plain language
+  requirement: RepresentationRequirement;  // organizer floor
+  chosenMode?: AttendanceMode;             // set only by the individual
+  delegationGrant?: DelegationGrant;
+}
+
+export type RemitDigestKind =
+  | 'ask_of_my_org' | 'decision_affecting_dependency' | 'action_in_my_remit' | 'input_requested';
+
+export interface RemitDigestItem {
+  kind: RemitDigestKind;
+  text: string;
+  sourceRemitRef: string;                  // cites the org-card section / role card it came from
+}
+
+/* ── Agenda + need-by timing ─────────────────────────────────────── */
+export interface NeedBy {
+  date: string;                            // ISO date the outcome is needed by
+  reason?: string;
+}
+
+export type AgendaItemKind = 'decision' | 'input_review' | 'status' | 'escalation';
+
+export interface MeetingAgendaItem {
+  topic: string;
+  kind: AgendaItemKind;
+  needBy?: NeedBy;                         // when the decision/outcome is needed
+  exercisesDecisionRight?: boolean;        // a named decision right is invoked
+  reviewsAgreement?: boolean;              // signs / reviews a Success Agreement
+}
+
+export type Urgency = 'overdue' | 'due_this_week' | 'on_track' | 'no_pressure';
+export type MeetingCadence = 'one_time' | 'weekly' | 'biweekly' | 'monthly';
+
+/* ── Rate card (the seat, never the person) ──────────────────────── */
+export type RoleBand =
+  | 'individual_contributor' | 'senior_ic' | 'manager' | 'director' | 'vp' | 'c_level';
+
+export interface RateBand {
+  annualBase: number;
+  hourly: number;                          // = annualBase × multiplier ÷ 2080 (derived)
+  halfHour: number;                        // = hourly ÷ 2 (derived)
+}
+
+export interface RateCard {
+  currency: Currency;
+  loadedCostMultiplier: number;            // default 1.35 (benefits / overhead on base comp)
+  bands: Record<RoleBand, RateBand>;
+  illustrative: boolean;                   // true until first edited in Admin
+}
+
+/* ── Economics (estimates for decision-making, never payroll) ────── */
+export interface MeetingEconomics {
+  durationMin: number;
+  liveCount: number;
+  delegateCount: number;
+  asyncCount: number;
+  hoursCost: number;                       // total seat-hours consumed live
+  hoursReturned: number;                   // seat-hours returned via delegate / async
+  costEstimate: number;                    // Σ live-attendee band hourly × duration
+  costAvoided: number;                     // Σ delegated / async band hourly × duration
+  recoverableOpportunity: number;          // what COULD still be saved
+  annualizedRecurringCost?: number;        // recurring: per-occurrence × occurrences/yr
+  annualizedRecoverable?: number;          // recurring: recoverable × occurrences/yr
+  rationale: string;
+}
+
+export type OpportunityDriver =
+  | 'informational_attendance' | 'duplicate_meetings' | 'async_eligible' | 'agreement_gap_escalations';
+
+export interface EnterpriseOpportunity {
+  annualMeetingSpend: number;
+  recoverable: number;
+  byDriver: Array<{ driver: OpportunityDriver; amount: number; rationale: string }>;
 }

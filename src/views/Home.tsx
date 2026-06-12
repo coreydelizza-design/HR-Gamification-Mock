@@ -6,6 +6,8 @@ import { SUCCESS_AGREEMENTS } from '../data/successAgreements';
 import { ORG_MEETINGS, ORG_MEETING_FITS, ORG_MEETING_FIT_BY_MEETING } from '../data/meetingFit';
 import { successFor, orgName } from '../lib/orgData';
 import { levelColor } from '../lib/readiness';
+import { classifyMeeting, inviteesFor, canDelegate, marginalCost, money } from '../lib/proxyEngine';
+import { roleBandOfPerson } from '../data/roleCards';
 import { Bar, StatusPill } from '../components/Shared';
 import { AgreementStatusBadge, MeetingFitBadge } from '../components/Org';
 
@@ -36,8 +38,25 @@ const HELP_ROTATION = [
 ];
 
 export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onOpenMeeting }: Props) {
-  const { organizations: ORGANIZATIONS, orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG } = useOrgData();
+  const { organizations: ORGANIZATIONS, orgById: ORG_BY_ID, orgCardByOrg: ORG_CARD_BY_ORG, rateCard } = useOrgData();
   const analyses = useMemo(() => ORGANIZATIONS.map((o) => ({ org: o, a: successFor(o.id)! })), [ORGANIZATIONS]);
+
+  // "Your week" — the signed-in persona's meetings, delegate-eligibility, returnable seat-time.
+  const myWeek = useMemo(() => {
+    const mine = ORG_MEETINGS.filter((m) => inviteesFor(m).some((i) => i.personId === user.id));
+    let eligible = 0; let returnable = 0;
+    const band = roleBandOfPerson(user.id);
+    for (const m of mine) {
+      const inv = inviteesFor(m).find((i) => i.personId === user.id);
+      if (!inv) continue;
+      const { cls } = classifyMeeting(m);
+      if (canDelegate(inv.requirement, cls, inv.criticality)) {
+        eligible += 1;
+        returnable += marginalCost(band, m.durationMinutes, rateCard);
+      }
+    }
+    return { count: mine.length, eligible, returnable };
+  }, [user.id, rateCard]);
 
   // Six enterprise readiness meters
   const cardCoverage = Math.round(ORGANIZATIONS.reduce((s, o) => s + ((ORG_CARD_BY_ORG[o.id]?.publishedSections.length ?? 0) / 13), 0) / ORGANIZATIONS.length * 100);
@@ -131,6 +150,25 @@ export default function Home({ user, onNavigate, onOpenOrg, onOpenAgreement, onO
           </div>
         </div>
       </div>
+
+      {myWeek.count > 0 && (
+        <div className="home-grid">
+          <button type="button" className="home-card your-week" style={{ gridColumn: '1 / -1', textAlign: 'left', cursor: 'pointer' }} onClick={() => onNavigate('meeting-fit')}>
+            <div className="home-card-head">
+              <div className="home-card-title">Your week</div>
+              <span className="home-card-meta">{user.name.split(' ')[0]} · Meeting Fit →</span>
+            </div>
+            <div style={{ fontSize: 13.5, color: 'var(--ink)', lineHeight: 1.6 }}>
+              <strong>{myWeek.count}</strong> meeting{myWeek.count === 1 ? '' : 's'} ·{' '}
+              <strong>{myWeek.eligible}</strong> delegate-eligible ·{' '}
+              <strong className="mono">{money(myWeek.returnable, rateCard.currency)}</strong> of your seat-time returnable.
+            </div>
+            <div style={{ fontSize: 11, color: 'var(--muted)', marginTop: 6 }}>
+              Delegation is yours to assign — only you control your own row. Critical seats in critical meetings stay person-required.
+            </div>
+          </button>
+        </div>
+      )}
 
       <div className="home-grid">
         {/* 2 · Organizations Needing Attention */}

@@ -1,10 +1,13 @@
 import { useState } from 'react';
+import type { RoleBand, Currency, ViewKey } from '../lib/types';
 import { ENTERPRISE } from '../data/enterprise';
 import {
   useOrgData, resetDemo, renameEnterprise, exportSession, importSession,
-  saveSnapshot, listSnapshots, restoreSnapshot,
+  saveSnapshot, listSnapshots, restoreSnapshot, updateRateCard,
 } from '../lib/demoStore';
 import { ORG_PACKS } from '../data/orgPacks';
+import { ROLE_BAND_LABEL, ROLE_BAND_ORDER, DEFAULT_MULTIPLIER } from '../data/rateCard';
+import { money } from '../lib/proxyEngine';
 
 const ORG_CARD_SECTIONS = [
   'Overview', 'How this organization succeeds', 'What this organization owns',
@@ -34,14 +37,21 @@ const VISIBILITY_SCOPES = [
   { scope: 'Private individual context', detail: 'Focus, feedback, and personal notes stay with the individual.' },
 ];
 
-type Tab = 'enterprise' | 'workshop' | 'catalog' | 'templates' | 'packs' | 'governance' | 'integrations';
+type Tab = 'enterprise' | 'workshop' | 'ratecard' | 'catalog' | 'templates' | 'packs' | 'governance' | 'integrations';
 
-export default function Admin({ onNewOrg }: { onNewOrg: () => void }) {
+export default function Admin({ onNewOrg, onNavigate }: { onNewOrg: () => void; onNavigate?: (v: ViewKey) => void }) {
   const [tab, setTab] = useState<Tab>('enterprise');
-  const { organizations: ORGANIZATIONS, enterpriseLabel, modified } = useOrgData();
+  const { organizations: ORGANIZATIONS, enterpriseLabel, modified, rateCard } = useOrgData();
   const [renameDraft, setRenameDraft] = useState(enterpriseLabel);
   const [importMsg, setImportMsg] = useState<string>('');
   const snapshots = listSnapshots();
+
+  // Rate card editor — local draft of band base salaries + multiplier + currency.
+  const [bases, setBases] = useState<Record<RoleBand, number>>(() =>
+    ROLE_BAND_ORDER.reduce((acc, b) => { acc[b] = rateCard.bands[b].annualBase; return acc; }, {} as Record<RoleBand, number>));
+  const [multiplier, setMultiplier] = useState(rateCard.loadedCostMultiplier);
+  const [currency, setCurrency] = useState<Currency>(rateCard.currency);
+  const derivedHourly = (band: RoleBand) => Math.round((bases[band] * multiplier) / 2080);
 
   const onReset = () => {
     if (window.confirm('Reset all demo data to the pristine seed? Any unsaved edits and created organizations will be discarded.')) {
@@ -83,8 +93,18 @@ export default function Admin({ onNewOrg }: { onNewOrg: () => void }) {
         <span className="section-meta">{ENTERPRISE.name} · demo-static configuration</span>
       </div>
 
+      {onNavigate && (
+        <button type="button" className="estimator-tile" onClick={() => onNavigate('estimator')}>
+          <div>
+            <div className="estimator-tile-title">Meeting Cost Estimator →</div>
+            <div className="estimator-tile-sub">The consultant's pocket tool — what-if rosters, conversion savings, and the enterprise opportunity, live against the rate card.</div>
+          </div>
+          <span className="estimator-tile-arrow">→</span>
+        </button>
+      )}
+
       <div className="tab-strip">
-        {([['enterprise', 'Enterprise'], ['workshop', 'Workshop'], ['catalog', 'Org Catalog'], ['templates', 'Card Templates'], ['packs', 'Org Packs'], ['governance', 'Visibility & Governance'], ['integrations', 'Integrations']] as Array<[Tab, string]>).map(([k, label]) => (
+        {([['enterprise', 'Enterprise'], ['workshop', 'Workshop'], ['ratecard', 'Rate Card'], ['catalog', 'Org Catalog'], ['templates', 'Card Templates'], ['packs', 'Org Packs'], ['governance', 'Visibility & Governance'], ['integrations', 'Integrations']] as Array<[Tab, string]>).map(([k, label]) => (
           <button key={k} className={tab === k ? 'active' : ''} onClick={() => setTab(k)}>{label}</button>
         ))}
       </div>
@@ -163,6 +183,59 @@ export default function Admin({ onNewOrg }: { onNewOrg: () => void }) {
                 <button className="btn-ghost btn-sm" onClick={() => { if (window.confirm('Restore this snapshot? Overwrites current demo data.')) restoreSnapshot(s.slot); }}>Restore</button>
               </div>
             ))}
+          </div>
+        </>
+      )}
+
+      {tab === 'ratecard' && (
+        <>
+          <div className="section-desc">
+            One rate card per enterprise. Rates attach to <strong>role bands (seats), never to a named person</strong> —
+            no individual compensation is stored, displayed, or implied. Every figure derived from this card is an
+            estimate for decision-making, not payroll math.
+          </div>
+          {rateCard.illustrative && <div className="illustrative-banner">Illustrative defaults — these public-benchmark salaries have not been edited yet. Adjust below to fit the client.</div>}
+
+          <div className="card" style={{ padding: 18 }}>
+            <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 14 }}>
+              <div>
+                <div className="admin-row-label" style={{ marginBottom: 6 }}>Loaded cost multiplier</div>
+                <input className="inp" type="number" step="0.01" style={{ width: 110 }} value={multiplier} onChange={(e) => setMultiplier(Number(e.target.value) || DEFAULT_MULTIPLIER)} />
+                <div className="admin-row-desc">benefits / overhead on base comp</div>
+              </div>
+              <div>
+                <div className="admin-row-label" style={{ marginBottom: 6 }}>Currency</div>
+                <select className="inp" style={{ width: 90 }} value={currency} onChange={(e) => setCurrency(e.target.value as Currency)}>
+                  {(['USD', 'EUR', 'GBP'] as Currency[]).map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="rate-table">
+              <div className="rate-head"><span>Band</span><span>Annual base</span><span>Hourly (derived)</span><span>Half-hour (derived)</span></div>
+              {ROLE_BAND_ORDER.map((band) => (
+                <div key={band} className="rate-row">
+                  <span>{ROLE_BAND_LABEL[band]}</span>
+                  <span><input className="inp" type="number" step="1000" style={{ width: 130 }} value={bases[band]} onChange={(e) => setBases((b) => ({ ...b, [band]: Number(e.target.value) || 0 }))} /></span>
+                  <span className="mono">{money(derivedHourly(band), currency)}</span>
+                  <span className="mono">{money(Math.round(derivedHourly(band) / 2), currency)}</span>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ marginTop: 14 }}>
+              <button className="btn-primary btn-sm" onClick={() => updateRateCard(bases, multiplier, currency)}>Apply rate card</button>
+            </div>
+          </div>
+
+          <div className="card" style={{ padding: 18, marginTop: 12 }}>
+            <div className="admin-row-label" style={{ marginBottom: 8 }}>Methodology</div>
+            <ul className="lbl-ul" style={{ fontSize: 12 }}>
+              <li><strong>Cost formula:</strong> hourly = band base × loaded multiplier ÷ 2080; meeting cost = Σ live-attendee band hourly × duration.</li>
+              <li><strong>Opportunity formula:</strong> recoverable = informational live attendance + duplicate meetings + async-eligible status meetings + agreement-gap escalations, annualized by cadence (weekly ×48, biweekly ×24, monthly ×12).</li>
+              <li><strong>Seat, not person:</strong> a rate belongs to a role band, never to an individual. No compensation is ever stored or attributed to a named employee.</li>
+              <li><strong>Estimates only:</strong> all figures are for decision-making, not payroll, and always render with a tilde (~).</li>
+            </ul>
           </div>
         </>
       )}
