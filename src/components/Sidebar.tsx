@@ -46,9 +46,9 @@ export default function Sidebar({ view, user, onNavigate }: Props) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <span className="brand-mark">F</span>
+        <span className="brand-mark">L</span>
         <div>
-          <div className="brand-name">Fieldguide</div>
+          <div className="brand-name">LAT40</div>
           <div className="brand-tag">Collaboration readiness</div>
         </div>
       </div>
